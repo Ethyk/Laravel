@@ -73,16 +73,19 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies
-RUN composer install --no-dev --prefer-dist --optimize-autoloader
+# RUN composer install --no-dev --prefer-dist --optimize-autoloader
+RUN composer install 
+
 # Install Laravel Octane
 # RUN composer require laravel/octane 
-RUN composer require laravel/octane --no-dev --prefer-dist --optimize-autoloader
+# RUN composer require laravel/octane --no-dev --prefer-dist --optimize-autoloader
+# RUN php artisan octane:install --server="swoole"
 
 # Install Octane configuration
 RUN php artisan octane:install --server="swoole"
 
 # Expose ports (9000 for FPM, 8000 for Octane)
-EXPOSE 9000 8000
+EXPOSE 8000
 
 # Configure Octane command
 CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8000"]
