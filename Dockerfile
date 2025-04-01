@@ -89,7 +89,7 @@ RUN composer dump-autoload
 RUN php artisan octane:install --server="swoole"
 
 # Exécuter les migrations
-RUN php artisan migrate --force
+RUN php artisan migrate
 
 # Expose ports (9000 for FPM, 8000 for Octane)
 EXPOSE 8000
