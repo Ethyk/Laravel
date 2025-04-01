@@ -73,14 +73,14 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies
-# RUN composer install --no-dev --prefer-dist --optimize-autoloader
-RUN composer install 
+RUN composer install --no-dev --prefer-dist --optimize-autoloader
+# RUN composer install 
 
 # Install Laravel Octane
-# RUN composer require laravel/octane 
+RUN composer require laravel/octane 
 # RUN composer require laravel/octane --no-dev --prefer-dist --optimize-autoloader
 # RUN php artisan octane:install --server="swoole"
-
+RUN composer dump-autoload
 # Install Octane configuration
 RUN php artisan octane:install --server="swoole"
 
