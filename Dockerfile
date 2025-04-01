@@ -72,12 +72,14 @@ WORKDIR /app
 # Copy application files first
 COPY . .
 
-# Générer la clé d'application si elle n'existe pas
-RUN if [ ! -f .env ]; then cp .env.example .env; fi && \
-    php artisan key:generate
+
 
 # Install dependencies
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
+
+# Générer la clé d'application si elle n'existe pas
+RUN if [ ! -f .env ]; then cp .env.example .env; fi && \
+    php artisan key:generate
 
 # Install Laravel Octane
 RUN composer require laravel/octane 
