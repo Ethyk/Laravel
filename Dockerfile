@@ -96,7 +96,9 @@ RUN php artisan migrate --force
 EXPOSE 8000
 
 # Configure Octane command
-CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8000"]
+# CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8000"]
+CMD ["sh", "-c", "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8000 && tail -f /dev/null"]
+
 
 # Environment variables
 ENV COMPOSER_HOME=/app/composer \
