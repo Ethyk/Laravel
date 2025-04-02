@@ -18,8 +18,7 @@ services:
       - .:/var/www/html:cached
       - /var/www/html/vendor
       - ./:/var/www/html/app
-      - ./storage:/var/www/html/app/storage
-      - ./public:/var/www/html/app/public
+      - ./storage_data:/var/www/html/storage/app/public
 
       - ./.env.example:/var/www/html/.env
       # Volume persistant pour le stockage si nécessaire (ex: uploads non S3)
