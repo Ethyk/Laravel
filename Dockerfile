@@ -27,7 +27,7 @@ RUN apk update && apk add --no-cache \
     autoconf \
     build-base \
     pkgconfig \
-    # supervisor \
+    supervisor \
     && rm -rf /var/cache/apk/*
 
 # Install PHP extensions
