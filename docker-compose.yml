@@ -12,6 +12,7 @@ services:
       - ./storage:/app/storage
       - ./public:/app/public
       - /app/vendor
+      - ./env.example:/app/.env
     environment:
       - COMPOSER_HOME=app/composer
       - COMPOSER_CACHE_DIR=app/composer/cache
