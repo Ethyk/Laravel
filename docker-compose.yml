@@ -15,12 +15,12 @@ services:
     volumes:
        # Montez votre code source pour le développement. Pour la prod, commentez/supprimez
        # si le code est déjà copié dans l'image via le Dockerfile.
-      # - .:/var/www/html:cached
-      - /var/www/html/vendor
-      - ./:/var/www/html/app
+      - .:/var/www/html:cached
+      # - /var/www/html/vendor
+      # - ./:/var/www/html/app
       - ./storage_data:/var/www/html/storage/app/public
 
-      - ./.env.example:/var/www/html/.env
+      # - ./.env.example:/var/www/html/.env
       # Volume persistant pour le stockage si nécessaire (ex: uploads non S3)
       # - storage_data:/var/www/html/storage/app/public
     depends_on:
@@ -148,8 +148,8 @@ volumes:
     driver: local
   # traefik-certs: # Si vous utilisez Let's Encrypt
   #   driver: local
-  # storage_data: # Si vous avez besoin de persister storage/app/public
-  #   driver: local
+  storage_data: # Si vous avez besoin de persister storage/app/public
+    driver: local
 
 # Réseau Docker pour la communication entre les services
 networks:
