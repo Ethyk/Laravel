@@ -27,10 +27,10 @@ RUN apk update && apk add --no-cache \
     freetype-dev \
     icu-dev \
     gettext-dev \
-    libpq-dev \      # Pour pdo_pgsql
+    libpq-dev \
     libsodium-dev \
     gmp-dev \
-    oniguruma-dev \   # Pour mbstring
+    oniguruma-dev \
     # Swoole Deps
     linux-headers \
     # Build tools (peuvent être supprimés dans une étape ultérieure si nécessaire)
@@ -38,7 +38,7 @@ RUN apk update && apk add --no-cache \
     build-base \
     pkgconfig \
     # Client libs et Utilitaires
-    libpq \          # Client PostgreSQL runtime
+    libpq \
     bash \
     git \
     zip \
