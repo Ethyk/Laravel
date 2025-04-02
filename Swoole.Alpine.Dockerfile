@@ -117,12 +117,19 @@ RUN chmod +x /usr/local/bin/start-container /usr/local/bin/healthcheck
 
 ###########################################
 
+
+
+
 FROM base AS common
 
 USER ${USER}
 
 COPY --link --chown=${WWWUSER}:${WWWUSER} . .
 
+# Installer Laravel Octane
+RUN composer require laravel/octane && \
+    php artisan octane:install --server="swoole"
+    
 RUN composer install \
     --no-dev \
     --no-interaction \
