@@ -14,6 +14,8 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_POST_MAX_SIZE=100M
 
 # Dépendances système nécessaires
+# Ajouter postgresql-dev pour pdo_pgsql, libpq pour la librairie cliente postgresql
+# Ajouter linux-headers pour Swoole si nécessaire sur certaines versions d'Alpine
 RUN apk add --no-cache \
     bash \
     git \
@@ -25,45 +27,49 @@ RUN apk add --no-cache \
     build-base \
     autoconf \
     linux-headers \
-    # $PHPIZE_DEPS est implicitement ajouté par les commandes pecl/docker-php-ext-*
+    $PHPIZE_DEPS \
     && rm -rf /var/cache/apk/*
 
 # Installer les extensions PHP
-# On combine pour réduire les couches
+RUN docker-php-ext-install -j$(nproc) \
+    bcmath \
+    ctype \
+    fileinfo \
+    mbstring \
+    pdo \
+    pdo_pgsql \
+    sockets \
+    tokenizer \
+    xml \
+    zip \
+    opcache \
+    pcntl
+
+# Installer l'extension Redis
+RUN pecl install redis && docker-php-ext-enable redis
+
+# Installer l'extension Swoole
+# Vous pouvez ajuster la version si nécessaire
 RUN set -eux; \
     apk add --no-cache --virtual .build-deps $PHPIZE_DEPS linux-headers; \
-    \
-    docker-php-ext-install -j$(nproc) \
-        bcmath \
-        ctype \
-        fileinfo \
-        mbstring \
-        pdo \
-        pdo_pgsql \
-        sockets \
-        tokenizer \
-        xml \
-        zip \
-        opcache \
-        pcntl; \
-    \
-    # Installer Redis
-    pecl install redis; \
-    docker-php-ext-enable redis; \
-    \
-    # Installer Swoole
     pecl install swoole; \
     docker-php-ext-enable swoole; \
-    \
-    # Nettoyage des dépendances de build
     runDeps="$( \
         scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/lib/php/extensions \
             | tr ',' '\n' \
             | sort -u \
             | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
     )"; \
-    apk add --no-cache --virtual .php-rundeps $runDeps; \
+    apk add --no-cache --virtual .swoole-phpext-rundeps $runDeps; \
     apk del .build-deps
+
+# --- Alternative pour RoadRunner (à la place de Swoole) ---
+# 1. Ne pas installer l'extension PECL Swoole ci-dessus
+# 2. S'assurer que `spiral/roadrunner-cli` est dans composer.json (dev)
+# 3. Ajouter une étape pour télécharger le binaire RR après composer install:
+#    COPY --from=composer /app/vendor/bin/rr /usr/local/bin/rr
+#    RUN chmod +x /usr/local/bin/rr && rr get-binary -y --location /usr/local/bin
+# ---------------------------------------------------------
 
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -75,46 +81,41 @@ RUN addgroup -g ${WWWGROUP} www-data \
 # Définir le répertoire de travail
 WORKDIR /var/www/html
 
-# Copier uniquement les fichiers nécessaires pour l'installation des dépendances
+# Copier les fichiers de dépendances et installer
 COPY --chown=www-data:www-data composer.json composer.lock ./
-
-# Installer les dépendances Composer
-# - Utiliser --prefer-dist et --no-dev pour une image de prod/optimisée
-# - --optimize-autoloader génère un autoloader optimisé
-# - --no-interaction évite les questions interactives
-RUN composer install --prefer-dist --optimize-autoloader --no-dev --no-interaction
-
-# Copier le reste du code de l'application
+RUN composer install --no-scripts --no-autoloader --no-dev --prefer-dist
+# Copier le reste de l'application
 COPY --chown=www-data:www-data . .
+# Générer l'autoloader optimisé et découvrir les packages
+# RUN composer dump-autoload --optimize \
+#     && composer run-script post-root-package-install \
+#     && composer run-script post-autoload-dump \
+#     && php artisan storage:link \
+#     && php artisan optimize:clear
 
-# Exécuter les commandes Artisan après l'installation et la copie complète
-# optimize:clear est généralement suffisant pour le dev/build.
-# Pour la production, vous pourriez vouloir utiliser:
-# php artisan config:cache && php artisan route:cache && php artisan view:cache
-RUN php artisan optimize:clear \
-    && php artisan storage:link
+RUN composer install --prefer-dist --optimize-autoloader --no-dev --no-interaction
+RUN php artisan storage:link 
+RUN php artisan optimize:clear
 
-# Définir les permissions finales sur les dossiers nécessaires
-# Important de le faire APRES la copie et les commandes artisan
+# Permissions
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwx storage bootstrap/cache
 
 # Copier la configuration Supervisor (si utilisée)
-# Assurez-vous que ce fichier existe si vous décommentez ENTRYPOINT
-# COPY .docker/php/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
+COPY .docker/php/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 
 # Exposer le port par défaut d'Octane
 EXPOSE 8000
 
-# Changer d'utilisateur pour l'exécution
+# Changer d'utilisateur
 USER www-data
 
 # Point d'entrée ou Commande
 # Option 1: Utiliser Supervisor (recommandé pour la gestion)
-# Assurez-vous que le service [program:octane] dans supervisor.conf est correct
-# ENTRYPOINT ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf"]
+# ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
 
-# Option 2: Lancer Octane directement (plus simple, utilisé ici)
+# Option 2: Lancer Octane directement (plus simple)
+# Assurez-vous que Octane est installé (`composer require laravel/octane`)
 CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8000", "--workers=auto", "--task-workers=auto"]
 # Ou pour RoadRunner:
 # CMD ["php", "artisan", "octane:start", "--server=roadrunner", "--host=0.0.0.0", "--port=8000", "--workers=auto"]
