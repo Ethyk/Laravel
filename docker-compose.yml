@@ -21,7 +21,7 @@ services:
       # - /var/www/html/vendor
       # - ./:/var/www/html/app
       # - ./support/install-extensions.sh:/opt/install-extensions.sh
-      - ./dockernew/support/install-extensions.sh:/support/install-extensions.sh
+      - ./dockernew/support:/suppor
       
       - ./storage_data:/opt/storage/app/public
 
