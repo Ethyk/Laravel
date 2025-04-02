@@ -173,7 +173,9 @@ RUN mkdir -p \
     storage/framework/cache \
     storage/framework/testing \
     storage/logs \
-    bootstrap/cache && chmod -R a+rw storage
+    bootstrap/cache && chmod -R a+rw storage  && \
+    chmod -R 775 storage bootstrap/cache && \
+    chown -R ${WWWUSER}:${WWWGROUP} storage bootstrap/cache
 
 RUN composer install \
     --classmap-authoritative \
