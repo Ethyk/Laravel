@@ -53,18 +53,34 @@ RUN apk update && apk add --no-cache \
 
 # Installer les extensions PHP
 RUN docker-php-ext-install -j$(nproc) \
-    bcmath \
-    ctype \
-    fileinfo \
-    mbstring \
     pdo \
     pdo_pgsql \
-    sockets \
-    tokenizer \
-    xml \
+    pdo_mysql \
     zip \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    intl \
+    mbstring \
     opcache \
-    pcntl
+    sockets \
+    soap \
+    xsl \
+    gmp \
+    sodium
+    # bcmath \
+    # ctype \
+    # fileinfo \
+    # mbstring \
+    # pdo \
+    # pdo_pgsql \
+    # sockets \
+    # tokenizer \
+    # xml \
+    # zip \
+    # opcache \
+    # pcntl
 
 # Installer l'extension Redis
 RUN pecl install redis && docker-php-ext-enable redis
