@@ -108,7 +108,7 @@ USER www-data
 
 # Point d'entrée ou Commande
 # Option 1: Utiliser Supervisor (recommandé pour la gestion)
-# ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
 
 # Option 2: Lancer Octane directement (plus simple)
 # Assurez-vous que Octane est installé (`composer require laravel/octane`)
