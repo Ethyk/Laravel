@@ -15,7 +15,7 @@ services:
     volumes:
        # Montez votre code source pour le développement. Pour la prod, commentez/supprimez
        # si le code est déjà copié dans l'image via le Dockerfile.
-      - .:/var/www/html:cached
+      # - .:/var/www/html:cached
       - /var/www/html/vendor
       - ./:/var/www/html/app
       - ./storage_data:/var/www/html/storage/app/public
