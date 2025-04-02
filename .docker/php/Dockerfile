@@ -14,10 +14,10 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     PHP_POST_MAX_SIZE=100M
 
 # Dépendances système nécessaires
-# Ajouter postgresql-dev pour pdo_pgsql, libpq pour la librairie cliente postgresql
-# Ajouter linux-headers pour Swoole si nécessaire sur certaines versions d'Alpine
-
+# Ajout de dépendances pour extensions courantes et Swoole/PgSQL
+# Suppression des doublons
 RUN apk update && apk add --no-cache \
+    # PHP Core & Extensions Deps
     libzip-dev \
     libpng-dev \
     libjpeg-turbo-dev \
@@ -27,10 +27,18 @@ RUN apk update && apk add --no-cache \
     freetype-dev \
     icu-dev \
     gettext-dev \
-    libpq-dev \
+    libpq-dev \      # Pour pdo_pgsql
     libsodium-dev \
     gmp-dev \
-    oniguruma-dev \
+    oniguruma-dev \   # Pour mbstring
+    # Swoole Deps
+    linux-headers \
+    # Build tools (peuvent être supprimés dans une étape ultérieure si nécessaire)
+    autoconf \
+    build-base \
+    pkgconfig \
+    # Client libs et Utilitaires
+    libpq \          # Client PostgreSQL runtime
     bash \
     git \
     zip \
@@ -39,19 +47,11 @@ RUN apk update && apk add --no-cache \
     wget \
     openssl \
     supervisor \
-    linux-headers \
-    autoconf \
-    build-base \
-    pkgconfig \
-    libzip-dev \
-    libpq \
-    postgresql-dev \
     $PHPIZE_DEPS \
     && rm -rf /var/cache/apk/*
 
-
-
 # Installer les extensions PHP
+# Suppression des doublons commentés
 RUN docker-php-ext-install -j$(nproc) \
     pdo \
     pdo_pgsql \
@@ -69,70 +69,54 @@ RUN docker-php-ext-install -j$(nproc) \
     xsl \
     gmp \
     sodium
-    # bcmath \
-    # ctype \
-    # fileinfo \
-    # mbstring \
-    # pdo \
-    # pdo_pgsql \
-    # sockets \
-    # tokenizer \
-    # xml \
-    # zip \
-    # opcache \
-    # pcntl
 
 # Installer l'extension Redis
 RUN pecl install redis && docker-php-ext-enable redis
 
 # Installer l'extension Swoole
-# Vous pouvez ajuster la version si nécessaire
+# Note: Le nettoyage des dépendances de build est plus efficace s'il est fait après toutes les installations PECL/ext-install
 RUN set -eux; \
     apk add --no-cache --virtual .build-deps $PHPIZE_DEPS linux-headers; \
     pecl install swoole; \
     docker-php-ext-enable swoole; \
-    runDeps="$( \
-        scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/lib/php/extensions \
-            | tr ',' '\n' \
-            | sort -u \
-            | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
-    )"; \
-    apk add --no-cache --virtual .swoole-phpext-rundeps $runDeps; \
+    # runDeps="$( \
+    #     scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/lib/php/extensions \
+    #         | tr ',' '\n' \
+    #         | sort -u \
+    #         | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
+    # )"; \
+    # apk add --no-cache --virtual .swoole-phpext-rundeps $runDeps; \
+    # La détection automatique des dépendances runtime peut être complexe, on garde les libs nécessaires explicitement
     apk del .build-deps
 
-# --- Alternative pour RoadRunner (à la place de Swoole) ---
-# 1. Ne pas installer l'extension PECL Swoole ci-dessus
-# 2. S'assurer que `spiral/roadrunner-cli` est dans composer.json (dev)
-# 3. Ajouter une étape pour télécharger le binaire RR après composer install:
-#    COPY --from=composer /app/vendor/bin/rr /usr/local/bin/rr
-#    RUN chmod +x /usr/local/bin/rr && rr get-binary -y --location /usr/local/bin
-# ---------------------------------------------------------
+# --- Alternative pour RoadRunner ---
+# Voir les commentaires dans le Dockerfile original
 
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Créer un utilisateur non-root
-RUN addgroup -g ${WWWGROUP} www-data \
+# Créer un utilisateur non-root (CORRIGÉ)
+RUN delgroup www-data || true \
+    && deluser www-data || true \
+    && addgroup -g ${WWWGROUP} www-data \
     && adduser -u ${WWWUSER} -G www-data -s /bin/sh -D www-data
 
 # Définir le répertoire de travail
 WORKDIR /var/www/html
 
-# Copier les fichiers de dépendances et installer
+# Copier les fichiers de dépendances et installer les dépendances (cache layer)
 COPY --chown=www-data:www-data composer.json composer.lock ./
+# Installer uniquement les dépendances sans scripts/autoload pour le cache
 RUN composer install --no-scripts --no-autoloader --no-dev --prefer-dist
+
 # Copier le reste de l'application
 COPY --chown=www-data:www-data . .
-# Générer l'autoloader optimisé et découvrir les packages
-# RUN composer dump-autoload --optimize \
-#     && composer run-script post-root-package-install \
-#     && composer run-script post-autoload-dump \
-#     && php artisan storage:link \
-#     && php artisan optimize:clear
 
-RUN composer install --prefer-dist --optimize-autoloader --no-dev --no-interaction
-RUN php artisan storage:link 
-RUN php artisan optimize:clear
+# Générer l'autoloader optimisé, exécuter les scripts composer et commandes artisan
+# Combinaison des deux RUN composer pour plus d'efficacité
+RUN composer install --prefer-dist --optimize-autoloader --no-dev --no-interaction \
+    && php artisan storage:link \
+    && php artisan optimize:clear
 
 # Permissions
 RUN chown -R www-data:www-data storage bootstrap/cache \
@@ -148,11 +132,10 @@ EXPOSE 8000
 USER www-data
 
 # Point d'entrée ou Commande
-# Option 1: Utiliser Supervisor (recommandé pour la gestion)
-# ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+# Option 1: Utiliser Supervisor
+# ENTRYPOINT ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"] # -n pour tourner au premier plan
 
-# Option 2: Lancer Octane directement (plus simple)
-# Assurez-vous que Octane est installé (`composer require laravel/octane`)
+# Option 2: Lancer Octane directement (par défaut ici)
 CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8000", "--workers=auto", "--task-workers=auto"]
 # Ou pour RoadRunner:
 # CMD ["php", "artisan", "octane:start", "--server=roadrunner", "--host=0.0.0.0", "--port=8000", "--workers=auto"]
