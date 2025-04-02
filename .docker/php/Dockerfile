@@ -16,19 +16,40 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
 # Dépendances système nécessaires
 # Ajouter postgresql-dev pour pdo_pgsql, libpq pour la librairie cliente postgresql
 # Ajouter linux-headers pour Swoole si nécessaire sur certaines versions d'Alpine
-RUN apk add --no-cache \
+
+RUN apk update && apk add --no-cache \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    libxml2-dev \
+    libxslt-dev \
+    curl-dev \
+    freetype-dev \
+    icu-dev \
+    gettext-dev \
+    libpq-dev \
+    libsodium-dev \
+    gmp-dev \
+    oniguruma-dev \
     bash \
     git \
+    zip \
     unzip \
+    curl \
+    wget \
+    openssl \
+    supervisor \
+    linux-headers \
+    autoconf \
+    build-base \
+    pkgconfig \
     libzip-dev \
     libpq \
     postgresql-dev \
-    supervisor \
-    build-base \
-    autoconf \
-    linux-headers \
     $PHPIZE_DEPS \
     && rm -rf /var/cache/apk/*
+
+
 
 # Installer les extensions PHP
 RUN docker-php-ext-install -j$(nproc) \
