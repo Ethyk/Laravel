@@ -27,6 +27,7 @@ RUN apk update && apk add --no-cache \
     autoconf \
     build-base \
     pkgconfig \
+    supervisor \
     && rm -rf /var/cache/apk/*
 
 # Install PHP extensions
@@ -78,9 +79,15 @@ COPY . .
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
 
 # Générer la clé d'application si elle n'existe pas
-RUN if [ ! -f .env ]; then cp .env.example .env; fi && \
-    php artisan key:generate
+RUN if [ ! -f .env ]; then cp .env.example .env; fi
+    # php artisan key:generate
 RUN php artisan key:generate
+RUN php artisan config:clear
+RUN php artisan cache:clear
+
+# Configurer Supervisor pour gérer Octane
+RUN mkdir -p /etc/supervisor/conf.d /var/log/supervisor/
+COPY ./octane.conf /etc/supervisor/conf.d/octane.conf
 
 # Install Laravel Octane
 RUN composer require laravel/octane 
@@ -97,7 +104,8 @@ EXPOSE 8000
 
 # Configure Octane command
 # CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8000"]
-CMD ["sh", "-c", "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8000 && tail -f /dev/null"]
+CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+
 
 
 # Environment variables
