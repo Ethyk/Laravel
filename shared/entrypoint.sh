@@ -1,4 +1,3 @@
-
 #!/usr/bin/env sh
 
 if [ "$LARAVEL_SAIL" = '1' ]; then
