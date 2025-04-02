@@ -1,78 +1,153 @@
-version: '3'
+version: '3.8'
 
 services:
+  # Service Applicatif (Laravel Octane)
   app:
     build:
       context: .
-      dockerfile: Dockerfile
-    restart: always
-    working_dir: /app
+      dockerfile: .docker/php/Dockerfile
+      args: # Passer les IDs utilisateur/groupe de l'hôte si nécessaire (Linux/macOS)
+        WWWUSER: '${WWWUSER:-1000}'
+        WWWGROUP: '${WWWGROUP:-1000}'
+    container_name: laravel-octane-app
+    restart: unless-stopped
+    working_dir: /var/www/html
     volumes:
-      - ./:/app
-      - ./storage:/app/storage
-      - ./public:/app/public
-      - /app/vendor
-      - ./.env.example:/app/.env
-    environment:
-      - COMPOSER_HOME=app/composer
-      - COMPOSER_CACHE_DIR=app/composer/cache
-      - DB_CONNECTION=pgsql
-      - DB_HOST=database
-      - DB_PORT=5432
-      - DB_DATABASE=laravel
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=password
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+       # Montez votre code source pour le développement. Pour la prod, commentez/supprimez
+       # si le code est déjà copié dans l'image via le Dockerfile.
+      - .:/var/www/html:cached
+      # Volume persistant pour le stockage si nécessaire (ex: uploads non S3)
+      # - storage_data:/var/www/html/storage/app/public
     depends_on:
-      - database
+      - postgres
       - redis
+    networks:
+      - laravel-octane-network
+    environment:
+      # Variables Laravel prises depuis le fichier .env
+      APP_NAME: '${APP_NAME}'
+      APP_ENV: '${APP_ENV}'
+      APP_KEY: '${APP_KEY}'
+      APP_DEBUG: '${APP_DEBUG}'
+      APP_URL: '${APP_URL}' # Sera souvent l'URL publique gérée par Traefik
+
+      LOG_CHANNEL: '${LOG_CHANNEL:-stderr}' # stdout/stderr est bien pour Docker
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres # Nom du service postgres
+      DB_PORT: 5432
+      DB_DATABASE: '${DB_DATABASE}'
+      DB_USERNAME: '${DB_USERNAME}'
+      DB_PASSWORD: '${DB_PASSWORD}'
+
+      CACHE_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      REDIS_HOST: redis # Nom du service redis
+      REDIS_PASSWORD: '${REDIS_PASSWORD:-null}'
+      REDIS_PORT: '${REDIS_PORT:-6379}'
+
+      # Configuration Octane (peut aussi être dans config/octane.php)
+      OCTANE_SERVER: swoole # ou roadrunner
+      OCTANE_HOST: 0.0.0.0
+      OCTANE_PORT: 8000
+
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.laravel.rule=Host(`laravel.localhost`)"
-      - "traefik.http.services.laravel.loadbalancer.server.port=8000"
-    networks:
-      - web
+      # Router pour l'application (HTTP)
+      - "traefik.http.routers.app-http.rule=Host(`${APP_DOMAIN:-octane.localhost}`)"
+      - "traefik.http.routers.app-http.entrypoints=web"
+      - "traefik.http.routers.app-http.service=app-service"
+      # Router pour l'application (HTTPS) - Décommentez si websecure est configuré
+      # - "traefik.http.routers.app-https.rule=Host(`${APP_DOMAIN:-octane.localhost}`)"
+      # - "traefik.http.routers.app-https.entrypoints=websecure"
+      # - "traefik.http.routers.app-https.tls=true"
+      # - "traefik.http.routers.app-https.tls.certresolver=myresolver" # Adaptez le nom du résolveur
+      # - "traefik.http.routers.app-https.service=app-service"
+      # Service pointant vers le port interne d'Octane
+      - "traefik.http.services.app-service.loadbalancer.server.port=8000"
+      # Middleware pour rediriger HTTP vers HTTPS (optionnel)
+      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+      # Appliquer le middleware au routeur HTTP
+      # - "traefik.http.routers.app-http.middlewares=redirect-to-https@docker"
 
+  # Service Traefik (Reverse Proxy)
   traefik:
-    image: traefik:v2.9
+    image: traefik:v2.10 # Ou une version plus récente de v2 ou v3
     container_name: traefik
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
+    restart: unless-stopped
     ports:
-      - "80:80"
-      - "8080:8080"
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS
+      - "8080:8080"  # Dashboard Traefik (optionnel)
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik.d:/etc/traefik/traefik.d:ro # Pour configs dynamiques additionnelles
+      # Volume pour stocker les certificats Let's Encrypt (si utilisé)
+      # - traefik-certs:/etc/traefik/acme
     networks:
-      - web
+      - laravel-octane-network
+    labels:
+      # Configuration du dashboard Traefik (accessible via traefik.localhost:8080 ou via port 80 si configuré)
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)" # Adaptez le domaine
+      - "traefik.http.routers.traefik-dashboard.entrypoints=web" # Ou un entrypoint spécifique
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      # Optionnel: Sécuriser le dashboard avec un middleware d'authentification
+      # - "traefik.http.routers.traefik-dashboard.middlewares=auth"
+      # - "traefik.http.middlewares.auth.basicauth.users=user:$$apr1$$...$$..." # Générer avec htpasswd
 
-  database:
-    image: postgres:14
-    restart: always
+  # Service PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: laravel-octane-postgres
+    restart: unless-stopped
     environment:
-      - POSTGRES_DB=laravel
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      POSTGRES_DB: '${DB_DATABASE}'
+      POSTGRES_USER: '${DB_USERNAME}'
+      POSTGRES_PASSWORD: '${DB_PASSWORD}'
     volumes:
-      - database:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
     networks:
-      - web
+      - laravel-octane-network
+    # ports: # Décommentez pour accéder à la DB depuis l'hôte
+    #   - "54321:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Service Redis
   redis:
-    image: redis:7
-    restart: always
+    image: redis:alpine
+    container_name: laravel-octane-redis
+    restart: unless-stopped
     volumes:
-      - redis:/data
+      - redis_data:/data
     networks:
-      - web
+      - laravel-octane-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-networks:
-  web:
-    driver: bridge
-
+# Volumes nommés pour la persistance des données
 volumes:
-  database:
-  redis:
+  pg_data:
+    driver: local
+  redis_data:
+    driver: local
+  # traefik-certs: # Si vous utilisez Let's Encrypt
+  #   driver: local
+  # storage_data: # Si vous avez besoin de persister storage/app/public
+  #   driver: local
+
+# Réseau Docker pour la communication entre les services
+networks:
+  laravel-octane-network:
+    driver: bridge
+    name: laravel-octane-network
