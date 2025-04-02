@@ -158,8 +158,7 @@ RUN mkdir -p /app/storage /app/bootstrap/cache && chown -R www-data:www-data /ap
 WORKDIR /app
 COPY . .
 
-RUN if [ ! -f .env ]; then cp .env.example .env; fi && \
-    php artisan key:generate
+RUN if [ ! -f .env ]; then cp .env.example .env; fi 
 
 # Install dependencies and set up Laravel Octane
 RUN composer install --no-dev --prefer-dist --optimize-autoloader && \
