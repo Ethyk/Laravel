@@ -117,19 +117,12 @@ RUN chmod +x /usr/local/bin/start-container /usr/local/bin/healthcheck
 
 ###########################################
 
-
-
-
 FROM base AS common
 
 USER ${USER}
 
 COPY --link --chown=${WWWUSER}:${WWWUSER} . .
 
-# Installer Laravel Octane
-RUN composer require laravel/octane && \
-    php artisan octane:install --server="swoole"
-    
 RUN composer install \
     --no-dev \
     --no-interaction \
@@ -180,9 +173,7 @@ RUN mkdir -p \
     storage/framework/cache \
     storage/framework/testing \
     storage/logs \
-    bootstrap/cache && chmod -R a+rw storage  && \
-    chmod -R 775 storage bootstrap/cache && \
-    chown -R ${WWWUSER}:${WWWGROUP} storage bootstrap/cache
+    bootstrap/cache && chmod -R a+rw storage
 
 RUN composer install \
     --classmap-authoritative \
