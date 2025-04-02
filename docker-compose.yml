@@ -20,6 +20,7 @@ services:
       # - .docker/php/supervisor.conf:/etc/supervisor/conf.d/supervisor.conf
       # - /var/www/html/vendor
       - ./:/var/www/html/
+      - ./shared:/shared
       # - ./support/install-extensions.sh:/opt/install-extensions.sh
       # - ./support/install-extensions.sh:/support/install-extensions.sh
       # - ./storage_data:/opt/storage/app/public
