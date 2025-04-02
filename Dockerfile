@@ -161,9 +161,11 @@ COPY . .
 RUN if [ ! -f .env ]; then cp .env.example .env; fi 
 
 # Install dependencies and set up Laravel Octane
-RUN composer install --no-dev --prefer-dist --optimize-autoloader && \
-    php artisan key:generate && \
-    composer require laravel/octane && composer dump-autoload && php artisan octane:install --server="swoole"
+RUN composer install --no-dev --prefer-dist --optimize-autoloader;
+RUN php artisan key:generate;
+RUN composer require laravel/octane;
+RUN composer dump-autoload;
+RUN php artisan octane:install --server="swoole"
 
 # Expose ports for FPM (9000) and Octane (8000)
 EXPOSE 8000
