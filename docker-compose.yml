@@ -21,10 +21,8 @@ services:
       # - /var/www/html/vendor
       # - ./:/var/www/html/app
       # - ./support/install-extensions.sh:/opt/install-extensions.sh
-      - ./dockernew/support:/suppor
-      
+      - dockernew/support/install-extensions.sh:/support/install-extensions.sh
       - ./storage_data:/opt/storage/app/public
-
       # - ./.env.example:/var/www/html/.env
       # Volume persistant pour le stockage si nécessaire (ex: uploads non S3)
       # - storage_data:/var/www/html/storage/app/public
