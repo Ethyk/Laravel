@@ -117,12 +117,19 @@ RUN chmod +x /usr/local/bin/start-container /usr/local/bin/healthcheck
 
 ###########################################
 
+
+
+
 FROM base AS common
 
 USER ${USER}
 
 COPY --link --chown=${WWWUSER}:${WWWUSER} . .
 
+# Installer Laravel Octane
+RUN composer require laravel/octane && \
+    php artisan octane:install --server="swoole"
+    
 RUN composer install \
     --no-dev \
     --no-interaction \
@@ -158,15 +165,14 @@ RUN bun run build
 
 FROM common AS runner
 
+USER ${USER}
 
 ENV WITH_HORIZON=false \
-WITH_SCHEDULER=false \
-WITH_REVERB=false
+    WITH_SCHEDULER=false \
+    WITH_REVERB=false
 
 COPY --link --chown=${WWWUSER}:${WWWUSER} . .
 COPY --link --chown=${WWWUSER}:${WWWUSER} --from=build ${ROOT}/public public
-
-USER ${USER}
 
 RUN mkdir -p \
     storage/framework/sessions \
