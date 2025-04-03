@@ -173,9 +173,7 @@ RUN mkdir -p \
     storage/framework/cache \
     storage/framework/testing \
     storage/logs \
-    bootstrap/cache && chmod -R a+rw storage \
-    chmod o+w storage -R \
-    chown octane:octane -R storage
+    bootstrap/cache && chmod -R a+rw storage
 
 RUN composer install \
     --classmap-authoritative \
