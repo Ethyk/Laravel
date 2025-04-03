@@ -165,7 +165,7 @@ RUN bun run build
 
 FROM common AS runner
 
-# USER ${USER}
+USER ${USER}
 
 ENV WITH_HORIZON=false \
     WITH_SCHEDULER=false \
