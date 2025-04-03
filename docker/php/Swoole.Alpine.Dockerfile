@@ -146,7 +146,7 @@ ENV ROOT=/var/www/html \
 WORKDIR ${ROOT}
 
 # COPY --link laravel/package.json laravel/bun.lock* ./
-COPY --link laravel/package.json  ./
+COPY --link ./laravel/package.json  ./
 
 RUN bun install --frozen-lockfile
 
