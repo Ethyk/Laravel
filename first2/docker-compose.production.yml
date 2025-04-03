@@ -15,7 +15,7 @@ x-base: &base
       condition: service_healthy
   build:
     context: .
-    dockerfile: docker/php/Swoole.Alpine.Dockerfile
+    dockerfile: Swoole.Alpine.Dockerfile
     args:
       APP_ENV: 'production' # to load .env.production
       APP_HOST: '${APP_HOST}'
@@ -32,8 +32,8 @@ x-base: &base
   networks:
     - stack
   volumes:
-    - './laravel/storage/app/public:/var/www/html/storage/app/public'
-    - './laravel/storage/logs:/var/www/html/storage/logs'
+    - './storage/app/public:/var/www/html/storage/app/public'
+    - './storage/logs:/var/www/html/storage/logs'
   logging: *default-logging
   restart: always
 

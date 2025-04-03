@@ -188,7 +188,6 @@ RUN composer install \
     --no-ansi \
     --no-dev \
     && composer clear-cache
-RUN setenforce 0
 
 EXPOSE 8000
 EXPOSE 8080
