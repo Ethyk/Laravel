@@ -32,8 +32,8 @@ x-base: &base
   networks:
     - stack
   volumes:
-    - './storage/app/public:/var/www/html/storage/app/public'
-    - './storage/logs:/var/www/html/storage/logs'
+    - './storage/app/public:/var/www/html/storage/app/public:z'
+    - './storage/logs:/var/www/html/storage/logs:z'
   logging: *default-logging
   restart: always
 
