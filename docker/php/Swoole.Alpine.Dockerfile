@@ -23,7 +23,7 @@ ENV TERM=xterm-color \
     WITH_SCHEDULER=false \
     OCTANE_SERVER=swoole \
     TZ=${TZ} \
-    USER=octane \
+    USER=www-data \
     APP_ENV=${APP_ENV} \
     ROOT=/var/www/html \
     COMPOSER_FUND=0 \
@@ -53,7 +53,7 @@ RUN apk update; \
     supervisor \
     libsodium-dev \
     brotli \
-    shadow \
+    # shadow \
     # Install PHP extensions
     && install-php-extensions \
     bz2 \
