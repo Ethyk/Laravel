@@ -25,6 +25,7 @@ x-base: &base
     RUNNING_MIGRATIONS: '${RUNNING_MIGRATIONS}'
     RUNNING_MIGRATIONS_AND_SEEDERS: '${RUNNING_MIGRATIONS_AND_SEEDERS}'
     APP_ENV: 'production' #build
+    APP_HOST: '${APP_HOST}'
     WWWUSER: ${HOST_UID:-1000} #build
     WWWGROUP: ${HOST_GID:-1000} #build
   image: ghcr.io/ethyk/laravel:latest
@@ -154,6 +155,7 @@ services:
     <<: *base
     environment:
       CONTAINER_MODE: horizon
+      APP_ENV: 'production' #build
       # HORIZON_DOMAIN: localhost # Replace with your desired subdomain
       HORIZON_PATH: 'horizon'
     labels:
@@ -162,12 +164,16 @@ services:
     <<: *base
     environment:
       CONTAINER_MODE: scheduler
+      APP_ENV: 'production' #build
+
     labels:
       traefik.enable: false
   reverb:
     <<: *base
     environment:
       CONTAINER_MODE: reverb
+      APP_ENV: 'production' #build
+
     labels:
       traefik.enable: true
       traefik.http.routers.reverb.rule: Host(`${APP_HOST}`) || Host(`localhost`)
