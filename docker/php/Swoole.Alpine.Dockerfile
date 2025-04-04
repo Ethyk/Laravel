@@ -53,6 +53,7 @@ RUN apk update; \
     supervisor \
     libsodium-dev \
     brotli \
+    shadow \
     # Install PHP extensions
     && install-php-extensions \
     bz2 \
