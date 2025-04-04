@@ -185,8 +185,6 @@ RUN composer install \
 EXPOSE 8000
 EXPOSE 8080
 
-ENV RUNNING_MIGRATIONS_AND_SEEDERS=false
-
 ENTRYPOINT ["start-container"]
 
 HEALTHCHECK --start-period=5s --interval=2s --timeout=5s --retries=8 CMD healthcheck || exit 1
