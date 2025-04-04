@@ -19,13 +19,13 @@ x-base: &base
     args:
       APP_ENV: 'production' # 'production|local' # to load .env.production
       APP_HOST: '${APP_HOST}'
-      WWWUSER: ${HOST_UID:1000}
-      WWWGROUP: ${HOST_GID:1000}
+      WWWUSER: ${HOST_UID:-1000}
+      WWWGROUP: ${HOST_GID:-1000}
   environment:
     RUNNING_MIGRATIONS: '${RUNNING_MIGRATIONS}'
     RUNNING_MIGRATIONS_AND_SEEDERS: '${RUNNING_MIGRATIONS_AND_SEEDERS}'
   # image: laravel/app
-  user: "${HOST_UID:1000}:${HOST_GID:1000}"
+  user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
   ulimits:
     nofile:
       soft: 20000
