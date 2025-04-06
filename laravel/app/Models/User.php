@@ -6,11 +6,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role'
     ];
 
     /**
@@ -48,7 +51,9 @@ class User extends Authenticatable
 
     public function tatoueur()
     {
-        return $this->hasOne(Tatoueur::class);
+        // return $this->hasOne(Tatoueur::class);
+        return $this->hasOne(Tatoueur::class, 'user_id');
+
     }
 
     public function demandes()
@@ -60,4 +65,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Salon::class, 'gestionnaire_id');
     }
+
+    public function isTatoueur()
+{
+    return $this->role === 'tatoueur';
+}
 }

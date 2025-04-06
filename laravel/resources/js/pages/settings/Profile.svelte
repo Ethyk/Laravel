@@ -30,6 +30,7 @@
     const form = useForm({
         name: user.name,
         email: user.email,
+        role: user.role,
     });
 
     const submit = (e: Event) => {
@@ -53,6 +54,12 @@
                 <div class="grid gap-2">
                     <Label for="name">Name</Label>
                     <Input id="name" class="mt-1 block w-full" bind:value={$form.name} required autocomplete="name" placeholder="Full name" />
+                    <InputError class="mt-2" message={$form.errors.name} />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="name">role</Label>
+                    <Input disabled id="name" class="mt-1 block w-full" bind:value={$form.role} required autocomplete="name" placeholder="Full name" />
                     <InputError class="mt-2" message={$form.errors.name} />
                 </div>
 
