@@ -14,6 +14,10 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasUuids;
 
+    const ROLE_ADMIN = 'admin';
+    const ROLE_GESTIONNAIRE = 'gestionnaire';
+    const ROLE_TATOUEUR = 'tatoueur';
+    const ROLE_CLIENT = 'client';
     /**
      * The attributes that are mass assignable.
      *
@@ -67,7 +71,13 @@ class User extends Authenticatable
     }
 
     public function isTatoueur()
-{
-    return $this->role === 'tatoueur';
-}
+    {
+        return $this->role === 'tatoueur';
+    }
+
+    public function hasRole(array $roles): bool
+    {
+        return in_array($this->role, $roles);
+    }
+
 }

@@ -1,0 +1,85 @@
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use App\Models\Portfolio;
+use App\Models\User;
+use App\Policies\PortfolioPolicy;
+
+class AuthServiceProvider extends ServiceProvider
+{
+    protected $policies = [
+        Portfolio::class => PortfolioPolicy::class,
+    ];
+    
+    /**
+     * Register any application authentication / authorization services.
+     */
+    public function boot()
+    {
+        $this->registerPolicies();
+
+        // Gates pour les salons
+        // Gate::define('create-salon', function ($user) {
+        //     return $user->role === User::ROLE_GESTIONNAIRE || $user->role === User::ROLE_ADMIN;
+        // });
+        Gate::define('create-salon', function ($user) {
+            // dd($user->role); // Inspecte le rôle de l'utilisateur
+            return $user->hasRole([User::ROLE_GESTIONNAIRE, User::ROLE_ADMIN]);
+        });
+        
+
+        Gate::define('manage-salon', function ($user) {
+            return $user->role === User::ROLE_GESTIONNAIRE || $user->role === User::ROLE_ADMIN;
+        });
+
+        Gate::define('view-salon', function ($user) {
+            return in_array($user->role, [User::ROLE_CLIENT, User::ROLE_TATOUEUR, User::ROLE_GESTIONNAIRE, User::ROLE_ADMIN]);
+        });
+
+        // Gates pour les portfolios
+        Gate::define('create-portfolio', function ($user) {
+            return $user->role === User::ROLE_TATOUEUR || $user->role === User::ROLE_ADMIN;
+        });
+
+        Gate::define('edit-portfolio', function ($user, $portfolio) {
+            return $user->id === $portfolio->tatoueur->user_id || $user->role === User::ROLE_ADMIN;
+        });
+
+        Gate::define('view-portfolio', function ($user) {
+            return in_array($user->role, [User::ROLE_CLIENT, User::ROLE_TATOUEUR, User::ROLE_GESTIONNAIRE, User::ROLE_ADMIN]);
+        });
+
+        Gate::define('delete-portfolio', function ($user, $portfolio) {
+            return $user->id === $portfolio->tatoueur->user_id || $user->role === User::ROLE_ADMIN;
+        });
+
+        // Gates pour les flashs
+        Gate::define('create-flash', function ($user) {
+            return $user->role === User::ROLE_TATOUEUR || $user->role === User::ROLE_ADMIN;
+        });
+
+        Gate::define('manage-flash', function ($user) {
+            return $user->role === User::ROLE_TATOUEUR || $user->role === User::ROLE_ADMIN;
+        });
+
+        Gate::define('view-flash', function ($user) {
+            return in_array($user->role, [User::ROLE_CLIENT, User::ROLE_TATOUEUR, User::ROLE_GESTIONNAIRE, User::ROLE_ADMIN]);
+        });
+
+        // Gates pour les demandes
+        Gate::define('create-demande', function ($user) {
+            return $user->role === User::ROLE_CLIENT;
+        });
+
+        Gate::define('view-demande', function ($user) {
+            return in_array($user->role, [User::ROLE_CLIENT, User::ROLE_TATOUEUR, User::ROLE_GESTIONNAIRE, User::ROLE_ADMIN]);
+        });
+
+        Gate::define('manage-demande', function ($user) {
+            return in_array($user->role, [User::ROLE_GESTIONNAIRE, User::ROLE_ADMIN]);
+        });
+    }
+}

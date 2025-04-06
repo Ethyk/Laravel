@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Portfolio;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PortfolioController extends Controller
 {
@@ -53,6 +54,26 @@ class PortfolioController extends Controller
     public function update(Request $request, Portfolio $portfolio)
     {
         //
+        // Récupérer l'utilisateur connecté
+        $user = Auth::guard('web')->user();
+
+        // Récupérer le portfolio à modifier
+        // $portfolio = Portfolio::findOrFail($id);
+    
+        // Vérification : Ce portfolio appartient-il au tatoueur associé à l'utilisateur ?
+        if ($portfolio->tatoueur->user_id !== $user->id) {
+            abort(403, 'Accès refusé. Vous ne pouvez modifier que votre propre portfolio.');
+        }
+    
+        // Effectuer la mise à jour (assure-toi de valider les données avant)
+        $validatedData = $request->validate([
+            'description' => 'nullable|string|max:255',
+            'image_url' => 'required|string|max:255',
+        ]);
+    
+        $portfolio->update($validatedData);
+    
+        return redirect()->route('portfolios.index')->with('success', 'Portfolio mis à jour avec succès.');
     }
 
     /**

@@ -32,8 +32,9 @@ class TatoueurController extends Controller
         // dd($user->id);
         // 2. Trouvez le tatoueur associé à cet utilisateur
         $tatoueur = Tatoueur::where('user_id', $user->id)
-                    // ->with('salonActuel')
-                    ->firstOrFail();
+                    ->first();
+        // dd($tatoueur);
+
         // $tatoueur = $user->tatoueur()
         //             ->with(['salonActuel', 'salons', 'flashs'])
         //             ->firstOrFail();
@@ -44,18 +45,26 @@ class TatoueurController extends Controller
         // $tatoueur = Tatoueur::with('salonActuel')->find($tatoueurId);
 
         // $salon = $tatoueurs->load('salonActuel');
-        $salon = Salon::where('gestionnaire_id', $user->id)
-                    // ->with('salonActuel')
-                    ->firstOrFail();
+        // $salon = Salon::where('gestionnaire_id', $user->id)
+        //             // ->with('salonActuel')
+        //             ->firstOrFail();
         // $tatoueur['salons'] = $salon;
-        // dd($tatoueur);
+        // dd($tatoueur ? $tatoueur->disponibilites : []);
         // dd($salon);
+        //  dd($tatoueur ?? [] ,);
+
         // localisation_actuelle
         // salon = Salon::get($tatoueurs->localisation_actuelle);
-        // dd($tatoueurs);
+
+
+        // $salon = Salon::find($salon_id);
+        // $tatoueurs = $salon->tatoueurs; // Liste des tatoueurs associés à ce salon
+        // $tatoueur = Tatoueur::find($tatoueur_id);
+        // $salons = $tatoueur->salons; // Liste des salons associés à ce tatoueur
+
         return Inertia::render('tatoueur/index', [
-            'tatoueur' => $tatoueur,
-            'disponibilites' => $tatoueur->disponibilites // Cela envoie les données JSON directement
+            'tatoueur' => $tatoueur ?? null ,
+            'disponibilites' => $tatoueur ? $tatoueur->disponibilites : null // Cela envoie les données JSON directement
             // 'salons' => [$salon]
         ]);
 

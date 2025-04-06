@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Salon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class SalonController extends Controller
 {
@@ -19,7 +20,8 @@ class SalonController extends Controller
         // Filtrer les salons qui appartiennent à cet utilisateur
         $salons = Salon::where('gestionnaire_id', $user->id)->get();
 
-        // dd($salons);
+        
+        // dd($salons->id); 
         // Retourner une vue avec les salons
         return inertia('Salons/Index', [
             'salons' => $salons
@@ -32,7 +34,17 @@ class SalonController extends Controller
      */
     public function create()
     {
-        //
+        // $user = auth()->user();
+        $user = auth()->user(); // Récupère l'utilisateur connecté
+        // dd(Gate::allows('create-salon', $user));
+        // dd(Gate::allows('create-salon'));
+        if (!Gate::allows('create-salon')) {
+            // dd(auth()->user()->role); // Vérifie ce que retourne le rôle ici
+            abort(403, 'Vous n\'avez pas l\'autorisation de créer un salon.');
+        }
+        
+        return inertia('Salons/Create', []);
+
     }
 
     /**
@@ -40,7 +52,32 @@ class SalonController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $user = auth()->user(); // Récupère l'utilisateur connecté
+
+        // Validation des données
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'adresse' => 'required|string|max:255',
+            'ville' => 'required|string|max:255',
+            'code_postal' => 'required|string|max:10',
+            'pays' => 'required|string|max:255',
+        ]);
+
+        // Création du salon dans la base de données
+        $salon = Salon::create([
+            'name' => $validatedData['name'],
+            'description' => $validatedData['description'],
+            'adresse' => $validatedData['adresse'],
+            'ville' => $validatedData['ville'],
+            'code_postal' => $validatedData['code_postal'],
+            'pays' => $validatedData['pays'],
+            'gestionnaire_id' => $user->id,
+        ]);
+
+        return to_route('salons.index')->with('success', 'Salon créé avec succès.');
+
+        // return redirect()->route('salons.index')->with('success', 'Salon créé avec succès.');
     }
 
     /**
@@ -48,7 +85,9 @@ class SalonController extends Controller
      */
     public function show(Salon $salon)
     {
-        //
+        return inertia('Salons/Shows', [
+            'salon' => $salon
+        ]);
     }
 
     /**
@@ -64,7 +103,26 @@ class SalonController extends Controller
      */
     public function update(Request $request, Salon $salon)
     {
-        //
+        if (!Gate::allows('manage-salon')) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        // Validation des données
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255|min:3',
+            'description' => 'nullable|string',
+            'adresse' => 'required|string|max:255',
+            'ville' => 'required|string|max:255',
+            'code_postal' => 'required|string|max:10',
+            'pays' => 'required|string|max:255',
+        ]);
+
+        // dd($validatedData);
+        
+         // Mise à jour des données
+        $salon->update($validatedData);
+        // dd($validatedData);
+        return redirect()->route('salons.index', $salon)->with('success', 'Salon mis à jour avec succès.');
     }
 
     /**

@@ -9,12 +9,12 @@
   import { Link, page } from '@inertiajs/svelte';
 
   let user = $derived($page.props.auth.user);
-  let disponibilites = $derived($page.props.disponibilites);
+  let disponibilites = $derived($page.props.disponibilites|| null);
   
 
   // Accès aux props envoyées depuis Laravel
   // let tatoueurs = $page.props.tatoueurs || [];
-  let tatoueur = $derived($page.props.tatoueur|| []);
+  let tatoueur = $derived($page.props.tatoueur|| null);
   let salons = $derived($page.props.salons|| []); 
 
   const breadcrumbs: BreadcrumbItem[] = [
@@ -45,18 +45,18 @@
       <div class="relative h-[calc(100vh-21rem)] overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
           <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
           <div>
-            <h1>Liste des tatoueurs</h1>
+            <h1>Info du tatoueur</h1>
             {#if status}
               <div class="alert">{status}</div>
             {/if}
             <ul>
               {#if tatoueur}
                 <li>
-                  <!-- {JSON.stringify(tatoueur, null, 2)} -->
                   {user.name} {user.name}
                   {#if tatoueur.bio}
                     <div class="salons">
-                      bio :
+                      bio :        //  dd($tatoueur ?? [] ,);
+
                           <!-- <span>{JSON.stringify(disponibilites.disponibilites)} </span> -->
 
                       <!-- {#each tatoueur.salons as salon} -->

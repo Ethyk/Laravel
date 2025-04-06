@@ -15,7 +15,7 @@
     // Accès aux props envoyées depuis Laravel
     // let tatoueurs = $page.props.tatoueurs || [];
     // let tatoueurs = $derived($page.props.tatoueurs|| []);
-    let salons = $derived($page.props.salons|| []); 
+    let salon = $derived($page.props.salon|| null); 
   
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -46,15 +46,7 @@
         </div> -->
         <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex justify-center items-center">
           <!-- <a href="/salon/create" class="z-10" use:inertia>nouveau salon</a> -->
-          {#if salons.length > 0}
-              <Link href="/salons/{salons[0].id}"
-              class="z-10 inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-              method="get" as="button">Editer le salon  {salons[0].name}</Link>
-          {:else}
-            <Link href="/salons/create"
-            class="z-10 inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-            method="get" as="button">nouveau salon</Link>
-          {/if}
+    
           
 
           <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
@@ -71,15 +63,23 @@
         <div class="relative h-[calc(100vh-21rem)] overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex justify-center items-center">
         <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
             <div class="text-center">
-              {#if salons.length > 0}
-                  <p>Le tableau contient {salons.length} Salon(s).</p>
-                  <ul>
-                      {#each salons as item}
-                          <li>Salon : {item.name}</li>
-                    <!-- {JSON.stringify(item, null, 2)} -->
+              {#if salon}
+              <h1 class="text-2xl font-bold mb-6">Détails du Salon</h1>
+              <div class="bg-white shadow-md rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">{salon.name}</h2>
+                <p class="text-gray-600"><strong>Description :</strong> {salon.description}</p>
+                <p class="text-gray-600"><strong>Adresse :</strong> {salon.adresse}</p>
+                <p class="text-gray-600"><strong>Ville :</strong> {salon.ville}</p>
+                <p class="text-gray-600"><strong>Code Postal :</strong> {salon.code_postal}</p>
+                <p class="text-gray-600"><strong>Pays :</strong> {salon.pays}</p>
+            </div>
+        
+            <div class="mt-6 relative">
+                <a href="/salons" class=" z-10 text-center bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Retour à la liste des salons
+                </a>
 
-                      {/each}
-                  </ul>
+            </div>
               {:else}
                   <p>Vous n avez ou n'apartenez a aucun salon, <br /> la liste est vide.</p>
               {/if}

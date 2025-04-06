@@ -19,6 +19,6 @@ class Portfolio extends Model
 
     public function tatoueur()
     {
-        return $this->belongsTo(Tatoueur::class);
+        return $this->belongsTo(Tatoueur::class, 'tatoueur_id');
     }
 }
