@@ -1,48 +1,28 @@
+# version: '3.7'
+# services:
+#   postgres:
+#     image: postgres:latest
+#     environment:
+#       - POSTGRES_USER: ${DB_USERNAME}
+#       - POSTGRES_PASSWORD: ${DB_PASSWORD}
+#       - POSTGRES_DB: ${DB_DATABASE}
+#     volumes:
+#       - postgres-data:/var/lib/postgresql/data
+
+#   redis:
+#     image: redis:latest
+#     volumes:
+#       - redis-data:/data
+
+# volumes:
+#   postgres-data:
+#   redis-data:
+
 x-logging: &default-logging
   driver: 'json-file'
   options:
     max-size: "50m"
     max-file: 6
-
-x-base: &base
-  profiles: [app]
-  depends_on:
-    pgsql:
-      condition: service_healthy
-    redis:
-      condition: service_healthy
-    minio:
-      condition: service_healthy
-  # build:
-  #   context: .
-  #   dockerfile: docker/php/Dockerfile
-  #   args:
-  #     APP_ENV: 'production' # 'production|local' # to load .env.production
-  #     APP_HOST: '${APP_HOST}'
-  #     WWWUSER: ${HOST_UID:-1000}
-  #     WWWGROUP: ${HOST_GID:-1000}
-  environment:
-    RUNNING_MIGRATIONS: '${RUNNING_MIGRATIONS}'
-    RUNNING_MIGRATIONS_AND_SEEDERS: '${RUNNING_MIGRATIONS_AND_SEEDERS}'
-    APP_ENV: 'production' #build
-    APP_HOST: '${APP_HOST}'
-    WWWUSER: ${HOST_UID:-1000} #build
-    WWWGROUP: ${HOST_GID:-1000} #build
-  image: ghcr.io/ethyk/laravel:latest
-  user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
-  ulimits:
-    nofile:
-      soft: 20000
-      hard: 40000
-  security_opt:
-    - no-new-privileges:true
-  networks:
-    - stack
-  volumes:
-    - './laravel/storage/app/public:/var/www/html/storage/app/public'
-    - './laravel/storage/logs:/var/www/html/storage/logs'
-  logging: *default-logging
-  restart: always
 
 services:
   traefik:
@@ -105,85 +85,6 @@ services:
       traefik.http.middlewares.traefik-retry.retry.initialinterval: 100ms
       traefik.http.middlewares.traefik-auth.basicauth.removeheader: true
       traefik.http.middlewares.traefik-auth.basicauth.users: "user:$$2y$$05$$8zbpsdxg9wDiiKdqxiB0zeAlxZtG68P1SDBOvCN4IooLFewLx70Gm" # user:123456
-  app:
-    <<: *base
-    healthcheck:
-      test: [ "CMD", "curl", "--fail", "localhost:8000/up" ]
-      interval: 3s
-      retries: 12
-      timeout: 5s
-    labels:
-      traefik.enable: true
-
-      traefik.http.routers.app.rule: Host(`${APP_HOST}`) || Host(`localhost`)
-      traefik.http.routers.app.entryPoints: app
-      traefik.http.routers.app.service: app-service
-      traefik.http.routers.app.middlewares: "redirect-scheme,app-retry,app-compress,security-headers"
-
-      traefik.http.routers.app-secure.rule: Host(`${APP_HOST}`) || Host(`localhost`)
-      traefik.http.routers.app-secure.entryPoints: app-secure
-      traefik.http.routers.app-secure.service: app-service
-      traefik.http.routers.app-secure.tls: true
-      traefik.http.routers.app-secure.middlewares: "redirect-scheme,app-retry,app-compress,security-headers"
-
-      traefik.http.services.app-service.loadbalancer.server.port: 8000 # Because container exposes multiple ports
-      traefik.http.services.app-service.loadbalancer.healthCheck.path: "/up"
-      traefik.http.services.app-service.loadbalancer.healthCheck.hostname: "localhost"
-      traefik.http.services.app-service.loadbalancer.healthCheck.port: 8000
-      traefik.http.services.app-service.loadbalancer.healthCheck.interval: 3s
-      traefik.http.services.app-service.loadbalancer.healthCheck.timeout: 5s
-
-      traefik.http.middlewares.limit.buffering.maxRequestBodyBytes: 460000000 # 460mb
-      traefik.http.middlewares.redirect-scheme.redirectscheme.scheme: https
-      traefik.http.middlewares.redirect-scheme.redirectscheme.permanent: true
-      traefik.http.middlewares.app-retry.retry.attempts: 4
-      traefik.http.middlewares.app-retry.retry.initialinterval: 100ms
-      traefik.http.middlewares.app-compress.compress: true
-      traefik.http.middlewares.security-headers.headers.accesscontrolmaxage: 100
-      traefik.http.middlewares.security-headers.headers.addvaryheader: true # Vary: Origin
-      traefik.http.middlewares.security-headers.headers.hostsproxyheaders: X-Forwarded-Host
-      traefik.http.middlewares.security-headers.headers.stsseconds: 63072000 # Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-      traefik.http.middlewares.security-headers.headers.stsincludesubdomains: true
-      traefik.http.middlewares.security-headers.headers.stspreload: true
-      traefik.http.middlewares.security-headers.headers.forcestsheader: true
-      traefik.http.middlewares.security-headers.headers.customFrameOptionsValue: SAMEORIGIN # X-Frame-Options: same-origin
-      traefik.http.middlewares.security-headers.headers.contenttypenosniff: true # X-Content-Type-Options: nosniff
-      traefik.http.middlewares.security-headers.headers.browserxssfilter: true # X-XSS-Protection: 1; mode=block
-      traefik.http.middlewares.security-headers.headers.referrerpolicy: no-referrer-when-downgrade # Referrer-Policy: no-referrer-when-downgrade
-      traefik.http.middlewares.security-headers.headers.permissionspolicy: camera=(), geolocation=(), microphone=(), payment=(), usb=(), interest-cohort=(), gyroscope=()
-  horizon:
-    <<: *base
-    environment:
-      CONTAINER_MODE: horizon
-      APP_ENV: 'production' #build
-      # HORIZON_DOMAIN: localhost # Replace with your desired subdomain
-      HORIZON_PATH: 'horizon'
-    labels:
-      traefik.enable: false
-  scheduler:
-    <<: *base
-    environment:
-      CONTAINER_MODE: scheduler
-      APP_ENV: 'production' #build
-
-    labels:
-      traefik.enable: false
-  reverb:
-    <<: *base
-    environment:
-      CONTAINER_MODE: reverb
-      APP_ENV: 'production' #build
-
-    labels:
-      traefik.enable: true
-      traefik.http.routers.reverb.rule: Host(`${APP_HOST}`) || Host(`localhost`)
-      traefik.http.routers.reverb.entryPoints: reverb
-      traefik.http.routers.reverb.tls: true
-      traefik.http.routers.reverb.middlewares: "reverb-retry"
-      traefik.http.middlewares.reverb-retry.retry.attempts: 4
-      traefik.http.middlewares.reverb-retry.retry.initialinterval: 100ms
-      traefik.http.routers.reverb.service: reverb-service
-      traefik.http.services.reverb-service.loadbalancer.server.port: 8080
   redis:
     profiles: [app]
     image: 'redis:alpine'
