@@ -45,4 +45,19 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function tatoueur()
+    {
+        return $this->hasOne(Tatoueur::class);
+    }
+
+    public function demandes()
+    {
+        return $this->hasMany(Demande::class, 'client_id');
+    }
+
+    public function gestionnaireSalon()
+    {
+        return $this->hasOne(Salon::class, 'gestionnaire_id');
+    }
 }
