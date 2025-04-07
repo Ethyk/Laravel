@@ -5,7 +5,7 @@
     import Label from '@/components/ui/label/label.svelte';
     import { inertia, useForm, page } from '@inertiajs/svelte';
 
-    let { style, auth, disponibilites, tatoueur, salons } = $props()
+    let { style, auth, tatoueur } = $props()
 
     tatoueur.style = tatoueur.style ? JSON.parse(tatoueur.style) : tatoueur.style; // Convertit `style` en objet JSON
     tatoueur.disponibilites = tatoueur.disponibilites ? JSON.parse(tatoueur.disponibilites) : tatoueur.style; // Convertit `style` en objet JSON
@@ -40,24 +40,12 @@
             preserveScroll: true,
             onSuccess: () => {
                 alert('profile supprime avec succès !');
-                console.log($form);
             },
             onError: (err) => {
                 // errors = err; // Affiche les erreurs retournées par le backend
             },
         });
     };
-    
-    // const addStyle = () => {
-    //     $form.style = [...$form.style, { id: null, name: '', description: '' }];
-    // };
-
-    // Supprimer un style
-    // const removeStyle = (index) => {
-    //     console.log(index);
-    //     $form.style.splice(index, 1);
-    //     $form.style = [...$form.style]; // Reset array reference for reactivity
-    // };
 
     const addStyle = () => {
         $form.style.push({
@@ -75,10 +63,6 @@
     const findStyleIndex = (id) => {
         return $form.style.findIndex(style => style.id === id);
     };
-
-    // let user = $derived($form.style);
-    
-    // let remaining = $derived(form.filter((t) => !t.name).length);
 </script>
 
 <div class="container mx-auto p-8">
@@ -244,7 +228,7 @@
                 class="w-full border text-black rounded px-4 py-2"
             >
                 <option value="" disabled selected>Choisissez un salon</option>
-                {#each salons as salon}
+                {#each $form.salons as salon}
                     <option class="text-gray-500" value={salon.id}   >{salon.name}</option>
                 {/each}
             </select>

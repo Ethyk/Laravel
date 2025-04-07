@@ -63,7 +63,7 @@ class TatoueurController extends Controller
         // $tatoueur = Tatoueur::find($tatoueur_id);
         // $salons = $tatoueur->salons; // Liste des salons associés à ce tatoueur
 
-        $tatoueur->load(['user', 'salons', 'flashs', 'portfolios']);
+        $tatoueur->load(['user', 'salons', 'flashs', 'portfolios', 'contractedSalons']);
         // dd($tatoueur);
 
         return Inertia::render('tatoueur/index', [
@@ -132,6 +132,8 @@ class TatoueurController extends Controller
     {
         // dd($tatoueur->styles);
         // dd($tatoueur);
+
+        $tatoueur->load(['user', 'salons', 'flashs', 'portfolios']);
 
         return Inertia::render('tatoueur/Show', [
             'csrf_token' => csrf_token(), // Injecte le token CSRF
