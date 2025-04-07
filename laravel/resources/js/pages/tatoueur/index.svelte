@@ -16,6 +16,7 @@
   // let tatoueurs = $page.props.tatoueurs || [];
   let tatoueur = $derived($page.props.tatoueur|| null);
   let salons = $derived($page.props.salons|| []); 
+  // console.log(tatoueur.salons);
 
   const breadcrumbs: BreadcrumbItem[] = [
       {
@@ -55,43 +56,21 @@
       <div class="relative h-[calc(100vh-21rem)] overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
           <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
           <div>
-            <h1>Info du tatoueur</h1>
+            <h1>Mes Salons en cours</h1>
             {#if status}
               <div class="alert">{status}</div>
             {/if}
             <ul>
               {#if tatoueur}
                 <li>
-                  {user.name} {user.name}
-                  {#if tatoueur.bio}
-                    <div class="salons">
-                      bio :        //  dd($tatoueur ?? [] ,);
-
+                  {#if tatoueur.salons}
+                    {#each tatoueur.salons as salon} 
+                      {salon.name} {salon.pays}
+                        <div class="salons">
                           <!-- <span>{JSON.stringify(disponibilites.disponibilites)} </span> -->
-
-                      <!-- {#each tatoueur.salons as salon} -->
-                        <!-- <span>{tatoueur.instagram}</span>
-                        <!-- <span>{tatoueur.bio}</span> -->
-                        <!-- <span>{tatoueur.disponibilites}</span> -->
-                        {#each  disponibilites.disponibilites as dispo}
-                        <!-- <span>{dispo.jour} </span> -->
-                        <!-- <span>{disponibilites}</span> -->
-                        <h3>{dispo.jour}</h3>
-                        <!-- <h3>{dispo.plages_horaires}</h3> -->
-                          <!-- <span>{JSON.stringify(dispo.plages_horaires)} </span> -->
-                          {#each  dispo.plages_horaires as horaire, index}
-                            {#if index === 0}
-                                <span>Matin</span>
-                            {:else if index === 1}
-                                <span>Après-midi</span>
-                            {/if}
-                          <span>De {horaire.debut} à {horaire.fin}</span>
-                              <span></span>
-                              <!-- <span>{JSON.stringify(dispo)} </span> -->
-                          {/each}
-                        
-                      {/each}
-                    </div>
+                          <span>Salon : {salon.description}</span>
+                        </div>
+                    {/each}
                   {/if}
                 </li>
               {/if}

@@ -24,9 +24,9 @@ class Tatoueur extends Model
         'user_id'
     ];
 
-    protected $casts = [
-        'disponibilites' => 'array', // Laravel va convertir automatiquement JSON en tableau PHP
-    ];
+    // protected $casts = [
+    //     'disponibilites' => 'array', // Laravel va convertir automatiquement JSON en tableau PHP
+    // ];
 
     public function user()
     {

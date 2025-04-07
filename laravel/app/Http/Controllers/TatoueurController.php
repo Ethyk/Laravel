@@ -63,6 +63,9 @@ class TatoueurController extends Controller
         // $tatoueur = Tatoueur::find($tatoueur_id);
         // $salons = $tatoueur->salons; // Liste des salons associés à ce tatoueur
 
+        $tatoueur->load(['user', 'salons', 'flashs', 'portfolios']);
+        // dd($tatoueur);
+
         return Inertia::render('tatoueur/index', [
             'tatoueur' => $tatoueur ?? null ,
             'disponibilites' => $tatoueur ? $tatoueur->disponibilites : null // Cela envoie les données JSON directement
@@ -131,6 +134,8 @@ class TatoueurController extends Controller
         // dd($tatoueur);
 
         return Inertia::render('tatoueur/Show', [
+            'csrf_token' => csrf_token(), // Injecte le token CSRF
+            'salons' => fn () => Salon::all(), // Liste des salons
             'tatoueur' => $tatoueur,
             'disponibilites' => $tatoueur ? $tatoueur->disponibilites : [], // Cela envoie les données JSON directement
             'style' => $tatoueur ? $tatoueur->style : [] // Cela envoie les données JSON directement
@@ -142,20 +147,29 @@ class TatoueurController extends Controller
     public function update(Request $request, Tatoueur $tatoueur)
     {
         $validated = $request->validate([
+            // 'disponibilites' => 'nullable|json',
             'bio' => 'nullable|string',
             'style' => 'nullable|json',
-            'instagram' => 'nullable|string|max:255'
+            'instagram' => 'nullable|string|max:255',
+            // 'localisation_actuelle' => 'nullable|string|max:255',
+            'localisation_actuelle' => 'nullable|exists:salons,id', // Valide comme clé 
+            'disponibilites' => 'nullable|json',
+            // 'updated_at' => 'nullable|string|max:255',
         ]);
 
         $tatoueur->update($validated);
-        return $tatoueur;
+        return redirect()->route('tatoueurs.show', $tatoueur)->with('success', 'tatoueur mis à jour avec succès.');
+        
+        // return $tatoueur;
     }
 
     // Suppression d'un tatoueur
     public function destroy(Tatoueur $tatoueur)
     {
         $tatoueur->delete();
-        return response(null, 204);
+        // return response(null, 204);
+        return to_route('tatoueurs.index')->with('success', 'tatoueur supprimé avec succès.');
+
     }
 
     // Méthodes supplémentaires si besoin
@@ -177,11 +191,20 @@ class TatoueurController extends Controller
             // dd(auth()->user()->role); // Vérifie ce que retourne le rôle ici
             abort(403, 'Vous n\'avez pas l\'autorisation de créer un profile tatoueur.');
         }
-        $salons = Salon::all();
+        // $salons = Salon::all();
         
         return Inertia::render('tatoueur/Create', [
-            'salons' => $salons
+            'salons' => fn () => Salon::all(), // Liste des salons
+            'csrf_token' => csrf_token(), // Injecte le token CSRF
+            'tatoueur' => [
+                'bio' => '',
+                'style' => [],
+                'localisation_actuelle' => null, // UUID du salon (ou null si vide)
+                'disponibilites' => [], // Tableau vide pour les disponibilités
+                'instagram' => '',
+            ],
         ]);
+        
 
         // return Inertia::render('tatoueur/index', [
         //     'tatoueur' => $tatoueur ?? null ,

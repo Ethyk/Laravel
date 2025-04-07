@@ -43,7 +43,18 @@ class SalonController extends Controller
             abort(403, 'Vous n\'avez pas l\'autorisation de créer un salon.');
         }
         
-        return inertia('Salons/Create', []);
+        return inertia('Salons/Create', [
+            'csrf_token' => csrf_token(), // Injecte le token CSRF dans la réponse
+            'salon' => [
+                'name' => '',
+                'description' => '',
+                'adresse' => '',
+                'ville' => '',
+                'code_postal' => '',
+                'pays' => '',
+                'gestionnaire_id' => null, // Si nécessaire, sinon laisse comme ''
+            ],
+        ]);
 
     }
 
@@ -52,7 +63,13 @@ class SalonController extends Controller
      */
     public function store(Request $request)
     {
+        // Vérification manuelle du token (optionnel)
+       if ($request->input('_token') !== csrf_token()) {
+           abort(419, 'Jeton CSRF invalide ou expiré.');
+       }
+       
         $user = auth()->user(); // Récupère l'utilisateur connecté
+
 
         // Validation des données
         $validatedData = $request->validate([

@@ -13,21 +13,31 @@
     //     experience: '',
     //     bio: '',
     // };
+    let { tatoueur:initdata, auth } = $props()
+    // let { user } = auth; 
     const tatoueur = useForm({
-        bio: '',
-        style: JSON.stringify([]),
-        localisation_actuelle: '',
-        disponibilites:  JSON.stringify([]),
-        instagram: '',
+        ...initdata,
+        // bio: '',
+        // style: JSON.stringify([]),
+        // localisation_actuelle: '',
+        // disponibilites:  JSON.stringify([]),
+        // instagram: '',
+        // _token: 'jeton_invalide', // Mauvais jeton
+        _token: $page.props.csrf_token,
     });
 
+    
     let salons = $derived($page.props.salons || []); 
     // const submitTatoueur = () => {
     //     router.post('/tatoueurs', tatoueur);
     // };
 
+    console.log($page.props);
+
+
+
     const submitTatoueur = () => {
-        $tatoueur.post(route('tatoueurs.store'));
+        $tatoueur.post(route('tatoueurs.store', tatoueur));
     };
     let errors = {}; // Pour stocker les erreurs de validation renvoyées par le backend
 
@@ -80,7 +90,7 @@
             <label for="salon" class="block text-sm font-medium">Salon</label>
             <select
                 id="salon"
-                bind:value={tatoueur.localisation_actuelle}
+                bind:value={$tatoueur.localisation_actuelle}
                 class="w-full border rounded px-4 py-2"
             >
                 <option value="" disabled selected>Choisissez un salon</option>
