@@ -1,0 +1,113 @@
+Voici un exemple de README.md pour ton projet. Il met en avant les principaux aspects du projet, comme son objectif, son installation et son utilisation. Tu peux adapter les sections en fonction des besoins spécifiques de ton projet.
+
+---
+
+# Tatoueur Management System
+
+## Description
+Le projet **Tatoueur Management System** est une application web qui permet de gérer les profils de tatoueurs, leurs disponibilités, leurs styles artistiques, et leur localisation actuelle dans des salons. L'application utilise Laravel en backend et Svelte en frontend avec Inertia.js pour créer une expérience utilisateur fluide et dynamique.
+
+## Features
+- Création et édition de profils tatoueurs.
+- Gestion des styles artistiques.
+- Configuration des disponibilités sous forme de structure JSON complexe.
+- Association avec des salons via UUID.
+- Frontend interactif et réactif construit avec Svelte et Inertia.js.
+- Backend puissant avec Laravel et PostgreSQL pour la gestion des données (JSONB inclus).
+
+## Technologies utilisées
+- **Backend** : Laravel (version 12)
+- **Frontend** : Svelte avec Inertia.js
+- **Base de données** : PostgreSQL (utilisation des colonnes `jsonb`)
+- **Authentification** : Laravel Gate pour la gestion des permissions
+- **Styling** : Tailwind CSS
+
+---
+
+## Prérequis
+Avant de commencer, assurez-vous d'avoir installé :
+- PHP 8.1 ou supérieur
+- Composer
+- Node.js (version 16 ou supérieure)
+- PostgreSQL
+- npm ou yarn
+
+---
+
+## Installation
+
+### Étapes Backend
+1. Clonez le dépôt :
+   ```bash
+   git clone https://github.com/Ethyk/Laravel.git tatoueur-management-system
+   cd tatoueur-management-system
+   ```
+
+2. Installez les dépendances PHP :
+   ```bash
+   composer install
+   ```
+
+3. Créez le fichier `.env` à partir du modèle :
+   ```bash
+   cp .env.example .env
+   ```
+   Configurez les variables de base de données dans `.env`.
+
+4. Générez la clé de l'application Laravel :
+   ```bash
+   php artisan key:generate
+   ```
+
+5. Exécutez les migrations et le seed de la base de données :
+   ```bash
+   php artisan migrate --seed
+   ```
+
+### Étapes Frontend
+1. Installez les dépendances Node.js :
+   ```bash
+   npm install
+   ```
+
+2. Compilez les assets :
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## Utilisation
+
+### Lancer le serveur
+Pour lancer l'application localement, exécutez :
+```bash
+php artisan serve
+```
+
+Puis ouvrez l'interface frontend en local à l'adresse :
+```
+http://127.0.0.1:8000
+```
+
+### Fonctionnalités principales
+- Accédez à la liste des tatoueurs.
+- Ajoutez un profil tatoueur via l'interface dédiée.
+- Modifiez les détails du tatoueur, y compris les disponibilités en JSON.
+- Gérez les relations entre tatoueurs et salons.
+
+---
+
+## Contribuer
+Les contributions sont les bienvenues ! Suivez ces étapes pour contribuer :
+1. Forkez le projet.
+2. Créez une nouvelle branche (`feature/my-feature`).
+3. Faites vos modifications et créez une Pull Request vers la branche principale.
+
+---
+
+## Licence
+Ce projet est sous licence **MIT**. Veuillez consulter le fichier `LICENSE` pour plus de détails.
+
+---
+
