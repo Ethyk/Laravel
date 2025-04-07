@@ -19,7 +19,7 @@ Route::get('dashboard', function () {
 
 Route::resource('salons', SalonController::class)->middleware(['auth:web']);
 
-Route::apiResource('tatoueurs', TatoueurController::class);
+Route::resource('tatoueurs', TatoueurController::class);
 // Routes supplémentaires si besoin
 Route::get('tatoueurs/{tatoueur}/flashs', [TatoueurController::class, 'getFlashs']);
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Salon;
 use App\Models\Tatoueur;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class TatoueurController extends Controller
@@ -93,19 +94,48 @@ class TatoueurController extends Controller
     // Création d'un tatoueur
     public function store(Request $request)
     {
+        // $validated = $request->validate([
+        //     // 'user_id' => 'required|exists:users,id',
+        //     'bio' => 'nullable|string',
+        //     'instagram' => 'nullable|string|max:255'
+        // ]);
+        // Validation des données
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
             'bio' => 'nullable|string',
-            'instagram' => 'nullable|string|max:255'
+            'style' => 'nullable|json', // Attend un tableau
+            'localisation_actuelle' => 'nullable|uuid',
+            'disponibilites' => 'nullable|json', // Attend un tableau
+            'instagram' => 'nullable|url|max:255',
         ]);
+        // Validation des données envoyées par le formulaire
+        // $validated = $request->validate([
+        //     'bio' => 'nullable|string|max:1000', // La bio est facultative et peut contenir jusqu'à 1000 caractères
+        //     'style' => 'nullable|string|max:255', // Le style est obligatoire, limité à 255 caractères
+        //     'localisation_actuelle' => 'nullable|string|max:255', // La localisation actuelle est facultative
+        //     'disponibilites' => 'nullable|string|max:255', // Les disponibilités sont facultatives
+        //     'instagram' => 'nullable|url|max:255', // Le compte Instagram doit être un lien valide
+        // ]);
+        $user = auth()->user(); // Récupère l'utilisateur connecté
+        $validated['user_id'] = $user->id;
 
-        return Tatoueur::create($validated);
+        // dd($validated);
+        Tatoueur::create($validated);
+        return to_route('tatoueurs.index')->with('success', 'tatoueur créé avec succès.');
+
     }
 
     // Affichage d'un tatoueur spécifique
     public function show(Tatoueur $tatoueur)
     {
-        return $tatoueur->load(['user', 'salons', 'flashs', 'portfolios']);
+        // dd($tatoueur->styles);
+        // dd($tatoueur);
+
+        return Inertia::render('tatoueur/Show', [
+            'tatoueur' => $tatoueur,
+            'disponibilites' => $tatoueur ? $tatoueur->disponibilites : [], // Cela envoie les données JSON directement
+            'style' => $tatoueur ? $tatoueur->style : [] // Cela envoie les données JSON directement
+        ]);
+        // return $tatoueur->load(['user', 'salons', 'flashs', 'portfolios']);
     }
 
     // Mise à jour d'un tatoueur
@@ -139,7 +169,25 @@ class TatoueurController extends Controller
      */
     public function create()
     {
-        //
+              // $user = auth()->user();
+        $user = auth()->user(); // Récupère l'utilisateur connecté
+        // dd(Gate::allows('create-salon', $user));
+        // dd(Gate::allows('create-salon'));
+        if (!Gate::allows('create-tatoueur')) {
+            // dd(auth()->user()->role); // Vérifie ce que retourne le rôle ici
+            abort(403, 'Vous n\'avez pas l\'autorisation de créer un profile tatoueur.');
+        }
+        $salons = Salon::all();
+        
+        return Inertia::render('tatoueur/Create', [
+            'salons' => $salons
+        ]);
+
+        // return Inertia::render('tatoueur/index', [
+        //     'tatoueur' => $tatoueur ?? null ,
+        //     'disponibilites' => $tatoueur ? $tatoueur->disponibilites : null // Cela envoie les données JSON directement
+        //     // 'salons' => [$salon]
+        // ]);
     }
 
 

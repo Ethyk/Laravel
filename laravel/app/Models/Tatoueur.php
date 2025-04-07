@@ -21,6 +21,7 @@ class Tatoueur extends Model
         'localisation_actuelle',
         'disponibilites',
         'instagram',
+        'user_id'
     ];
 
     protected $casts = [

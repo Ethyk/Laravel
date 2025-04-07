@@ -37,6 +37,11 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         // Définir les Gates pour les salons
+        Gate::define('create-tatoueur', function ($user) {
+            return $user->hasRole([User::ROLE_GESTIONNAIRE, User::ROLE_ADMIN]);
+        });
+
+        // Définir les Gates pour les salons
         Gate::define('create-salon', function ($user) {
             return $user->hasRole([User::ROLE_GESTIONNAIRE, User::ROLE_ADMIN]);
         });

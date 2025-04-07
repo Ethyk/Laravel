@@ -2,8 +2,7 @@
     import { onMount } from "svelte";
     // import { Inertia } from '@inertiajs/inertia';
     import { inertia } from '@inertiajs/svelte';
-    import { router } from '@inertiajs/svelte'
-
+    import { router } from '@inertiajs/svelte';
 
     let salon = {
         name: '',

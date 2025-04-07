@@ -32,7 +32,17 @@
 <AppLayout {breadcrumbs}>
   <div class="space-y-4 px-4 pt-4">
       <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-          <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+        <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex justify-center items-center">
+          <!-- <a href="/salon/create" class="z-10" use:inertia>nouveau salon</a> -->
+          {#if tatoueur}
+          <Link href="/tatoueurs/{tatoueur.id}"
+          class="z-10 inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+          method="get" as="button">Editer le profile  {tatoueur.bio}</Link>
+      {:else}
+        <Link href="/tatoueurs/create"
+        class="z-10 inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+        method="get" as="button">nouveau profile Tattoueur</Link>
+      {/if}
               <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
           </div>
           <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
