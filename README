@@ -27,7 +27,7 @@ Avant de commencer, assurez-vous d'avoir installé :
 - Composer
 - Node.js (version 16 ou supérieure)
 - PostgreSQL
-- npm ou yarn
+- pnpm ou yarn ou Bun
 
 ---
 
@@ -62,14 +62,14 @@ Avant de commencer, assurez-vous d'avoir installé :
    ```
 
 ### Étapes Frontend
-1. Installez les dépendances Node.js :
+1. Installez les dépendances Bun :
    ```bash
-   npm install
+   bun install
    ```
 
 2. Compilez les assets :
    ```bash
-   npm run dev
+   bun run dev
    ```
 
 ---
