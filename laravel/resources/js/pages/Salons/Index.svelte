@@ -129,7 +129,13 @@
                 </td>
             </tr>
         {/each}
+        <Button class={buttonVariants({ variant: "outline" })} onclick={() => openDialog(null)}>
+            Créer Salon
+        </Button>
     </tbody>
 </table>
 
 <SalonDialog salon={selectedSalon} {csrf_token} isOpen={isDialogOpen} onClose={closeDialog} />
+
+main
+<pre>{JSON.stringify(selectedSalon, null, 2)}</pre>

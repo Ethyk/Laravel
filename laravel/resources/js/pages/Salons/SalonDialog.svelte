@@ -17,23 +17,56 @@
 
     let { salon, isOpen, onClose, csrf_token } = $props()
 
-    
-
-    // console.log(isOpen);
-    const form = $derived(useForm({
-        id: salon ? salon.id : null,
-        name: salon ? salon.name : '',
-        description: salon ? salon.description : '',
-        adresse: salon ? salon.adresse : '',
-        ville: salon ? salon.ville : '',
-        code_postal: salon ? salon.code_postal : '',
-        pays: salon ? salon.pays : '',
+    //   Initialisation réactive du formulaire
+       const form = useForm({
+        id: null,
+        name: '',
+        description: '',
+        adresse: '',
+        ville: '',
+        code_postal: '',
+        pays: '',
         _token: csrf_token
-    }));
+    });
 
-    function submit() {
+
+
+    // // Mettez à jour le formulaire lorsque `salon` change
+    $effect(() => {
+        if (!salon) {
+        $form.id = salon?.id ?? null;
+        $form.name = salon?.name ?? '';
+        $form.description = salon?.description ?? '';
+        $form.adresse = salon?.pays ?? '';
+        $form.ville = salon?.ville ?? '';
+        $form.code_postal = salon?.code_postal ?? '';
+        $form.pays = salon?.pays ?? '';
+        $form._token = csrf_token ?? 'Error'
+        }
+    });
+
+      // Fonction pour synchroniser les données du salon avec le formulaire
+      function syncFormWithSalon() {
         if (salon) {
-            $form.put(`/salons/${salon.id}`,{
+            $form.id = salon.id;
+            $form.name = salon.name;
+            $form.description = salon.description;
+            $form.adresse = salon.adresse;
+            $form.ville = salon.ville;
+            $form.code_postal = salon.code_postal;
+            $form.pays = salon.pays;
+        }
+    }
+
+    // Appeler la synchronisation chaque fois que le modal est ouvert ou que `salon` change
+    $effect(() => {
+        syncFormWithSalon();
+    });
+
+    function submit(e) {
+        e.preventDefault();
+        if (salon) {
+            $form.patch(`/salons/${salon.id}`,{
             preserveScroll: true,
             onSuccess: () => {
                 $form.defaults() //// $form.data() contient les data
@@ -42,6 +75,8 @@
                 onClose();
             },
             onError: (err) => {
+                console.log(err)
+                console.log($form)
                 // errors = err; // Affiche les erreurs retournées par le backend
             },
         });
@@ -80,10 +115,12 @@
 
 
 <Dialog.Root open={isOpen} onOpenChange={onClose}>
-    <Dialog.Trigger as={Button}>
+    <!-- <Dialog.Trigger  class={buttonVariants({ variant: "outline" })}>
         {salon ? 'Modifier' : 'Créer'} Salon
-    </Dialog.Trigger>
+    </Dialog.Trigger> -->
     <Dialog.Content class="sm:max-w-[425px]">
+    <form class="space-y-6" onsubmit={submit}>
+
         <Dialog.Header>
             <Dialog.Title>{salon ? 'Modifier le Salon' : 'Créer un Salon'}</Dialog.Title>
             <Dialog.Description>
@@ -95,6 +132,7 @@
                 <Label for="name" class="text-right">Nom</Label>
                 <Input id="name" bind:value={$form.name} required class="col-span-3" placeholder={$form.name} />
                 {#if $form.errors.name}<span>{$form.errors.name}</span>{/if}
+                <InputError message={$form.errors.name} />
             </div>
             <div class="grid grid-cols-4 items-center gap-4">
                 <Label for="description" class="text-right">Description</Label>
@@ -122,12 +160,18 @@
             </div>
         </div>
         <Dialog.Footer>
-            <Button type="button" onclick={submit}>
-                {salon ? 'Mettre à jour' : 'Créer'}
+            <Button variant="destructive" disabled={$form.processing}>
+                <button type="submit">{salon ? 'Mettre à jour' : 'Créer'}</button>
             </Button>
+            <!-- <Button type="button" onclick={submit}>
+                {salon ? 'Mettre à jour' : 'Créer'}
+            </Button> -->
             <Button type="button" onclick={onClose}>
                 Fermer
             </Button>
         </Dialog.Footer>
+    </form>
     </Dialog.Content>
 </Dialog.Root>
+<pre>{JSON.stringify($form.data(), null, 2)}</pre>
+

@@ -143,7 +143,9 @@ class SalonController extends Controller
          // Mise à jour des données
         $salon->update($validatedData);
         // dd($validatedData);
-        return redirect()->route('salons.index', $salon)->with('success', 'Salon mis à jour avec succès.');
+        return redirect()->back();
+
+        // return redirect()->route('salons.index', $salon)->with('success', 'Salon mis à jour avec succès.');
     }
 
     /**
