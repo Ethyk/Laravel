@@ -1,7 +1,5 @@
 <script>
-    // import { useForm } from '@inertiajs/inertia-svelte';
     import { inertia, useForm } from '@inertiajs/svelte';
-
     import {
         Button,
         buttonVariants
@@ -10,15 +8,8 @@
     import Label from '@/components/ui/label/label.svelte';
     import Input from '@/components/ui/input/input.svelte';
     import InputError from '@/components/InputError.svelte';
-
-    // export let salon = null;
-    // export let isOpen = false;
-    // export let onClose = () => {};
-
-    // let { salon, isOpen, onClose, csrf_token } = $props()
+  
     let { salon = null, isOpen = false, onClose = () => {}, csrf_token = 0x42 } = $props();
-
-    // //   Initialisation réactive du formulaire
     const form = useForm({
         id: null,
         name: '',
@@ -29,7 +20,6 @@
         pays: '',
         _token: csrf_token
     });
-
     function updateForm(data) {
         $form.id = data?.id ?? null;
         $form.name = data?.name ?? '';
@@ -39,12 +29,10 @@
         $form.code_postal = data?.code_postal ?? '';
         $form.pays = data?.pays ?? '';
     }
-
     $effect(() => {
         updateForm(salon || {});
     });
   
-
     function submit(e) {
         e.preventDefault();
         if (salon) {
@@ -56,11 +44,8 @@
                 $form.reset();
                 onClose();
             },
-            onError: (err) => {
-                console.log(err)
-                console.log($form)
-                // errors = err; // Affiche les erreurs retournées par le backend
-            },
+            onError: (err) => console.log(err)
+            ,
         });
         } else {
             $form.post('/salons/',{
@@ -77,22 +62,6 @@
         });
         }
     }
-    console.log(csrf_token);
-    // function submit() {
-    //     console.log(salon);
-    //     $form.put(`/salons/${salon.id}`,{
-    //         preserveScroll: true,
-    //         onSuccess: () => {
-    //             $form.defaults() //// $form.data() contient les data
-    //             $form.clearErrors();
-    //             $form.reset();
-    //             onClose();
-    //         },
-    //         onError: (err) => {
-    //             // errors = err; // Affiche les erreurs retournées par le backend
-    //         },
-    //     });
-    // }
 </script>
 
 
@@ -155,8 +124,7 @@
     </form>
     </Dialog.Content>
 </Dialog.Root>
-<!-- salon:
-<pre>{JSON.stringify(salon, null, 2)}</pre> -->
 
-form.data:
+Debug [form.data]:
+<!-- <pre>{JSON.stringify($form.isDirty, null, 2)}</pre> -->
 <pre>{JSON.stringify($form.data(), null, 2)}</pre>

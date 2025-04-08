@@ -75,7 +75,7 @@ class SalonController extends Controller
 
         // Validation des données
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|min:3',
             'description' => 'nullable|string',
             'adresse' => 'required|string|max:255',
             'ville' => 'required|string|max:255',
