@@ -15,10 +15,11 @@
     // export let isOpen = false;
     // export let onClose = () => {};
 
-    let { salon, isOpen, onClose, csrf_token } = $props()
+    // let { salon, isOpen, onClose, csrf_token } = $props()
+    let { salon = null, isOpen = false, onClose = () => {}, csrf_token = 0x42 } = $props();
 
-    //   Initialisation réactive du formulaire
-       const form = useForm({
+    // //   Initialisation réactive du formulaire
+    const form = useForm({
         id: null,
         name: '',
         description: '',
@@ -29,39 +30,20 @@
         _token: csrf_token
     });
 
-
-
-    // // Mettez à jour le formulaire lorsque `salon` change
-    $effect(() => {
-        if (!salon) {
-        $form.id = salon?.id ?? null;
-        $form.name = salon?.name ?? '';
-        $form.description = salon?.description ?? '';
-        $form.adresse = salon?.pays ?? '';
-        $form.ville = salon?.ville ?? '';
-        $form.code_postal = salon?.code_postal ?? '';
-        $form.pays = salon?.pays ?? '';
-        $form._token = csrf_token ?? 'Error'
-        }
-    });
-
-      // Fonction pour synchroniser les données du salon avec le formulaire
-      function syncFormWithSalon() {
-        if (salon) {
-            $form.id = salon.id;
-            $form.name = salon.name;
-            $form.description = salon.description;
-            $form.adresse = salon.adresse;
-            $form.ville = salon.ville;
-            $form.code_postal = salon.code_postal;
-            $form.pays = salon.pays;
-        }
+    function updateForm(data) {
+        $form.id = data?.id ?? null;
+        $form.name = data?.name ?? '';
+        $form.description = data?.description ?? '';
+        $form.adresse = data?.adresse ?? '';
+        $form.ville = data?.ville ?? '';
+        $form.code_postal = data?.code_postal ?? '';
+        $form.pays = data?.pays ?? '';
     }
 
-    // Appeler la synchronisation chaque fois que le modal est ouvert ou que `salon` change
     $effect(() => {
-        syncFormWithSalon();
+        updateForm(salon || {});
     });
+  
 
     function submit(e) {
         e.preventDefault();
@@ -131,8 +113,8 @@
             <div class="grid grid-cols-4 items-center gap-4">
                 <Label for="name" class="text-right">Nom</Label>
                 <Input id="name" bind:value={$form.name} required class="col-span-3" placeholder={$form.name} />
-                {#if $form.errors.name}<span>{$form.errors.name}</span>{/if}
-                <InputError message={$form.errors.name} />
+                <!-- {#if $form.errors.name}<span>{$form.errors.name}</span>{/if} -->
+                <InputError  message={$form.errors.name} />
             </div>
             <div class="grid grid-cols-4 items-center gap-4">
                 <Label for="description" class="text-right">Description</Label>
@@ -173,5 +155,8 @@
     </form>
     </Dialog.Content>
 </Dialog.Root>
-<pre>{JSON.stringify($form.data(), null, 2)}</pre>
+<!-- salon:
+<pre>{JSON.stringify(salon, null, 2)}</pre> -->
 
+form.data:
+<pre>{JSON.stringify($form.data(), null, 2)}</pre>
