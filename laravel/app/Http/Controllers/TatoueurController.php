@@ -150,19 +150,43 @@ class TatoueurController extends Controller
     {
         $validated = $request->validate([
             // 'disponibilites' => 'nullable|json',
-            'bio' => 'nullable|string',
+            'bio' => 'nullable|string|min:4',
             'style' => 'nullable|json',
-            'instagram' => 'nullable|string|max:255',
+            'instagram' => 'nullable|string|max:255|min:3',
             // 'localisation_actuelle' => 'nullable|string|max:255',
             'localisation_actuelle' => 'nullable|exists:salons,id', // Valide comme clé 
             'disponibilites' => 'nullable|json',
             // 'updated_at' => 'nullable|string|max:255',
         ]);
 
+        
+        $tatoueur->load(['user', 'salons', 'flashs', 'portfolios', 'contractedSalons']);
+
         $tatoueur->update($validated);
-        return redirect()->route('tatoueurs.show', $tatoueur)->with('success', 'tatoueur mis à jour avec succès.');
+        return redirect()->back();
+        // ->with([
+        //     'success' => 'Tatoueur updated successfully!',
+        //     'tatoueur' => $tatoueur->refresh(), // Pass any other data as needed
+        // ]);
+
+        // return redirect()->route('tatoueurs.show', $tatoueur)->with('success', 'tatoueur mis à jour avec succès.');
         
         // return $tatoueur;
+        // return Inertia::render('Tatoueurs/Index', [
+        //     'tatoueur' => $tatoueur->only(
+        //       'id',
+        //       'bio',
+        //       'style',
+        //       'instagram',
+        //       'disponibilites'
+        //     ),
+        //     // 'tatoueur' => $tatoueur->fresh(), // Assurez-vous de rafraîchir les données si nécessaire
+        //     // 'success'  => 'Tatoueur mis à jour avec succès.',
+        //     // 'disponibilites' => $tatoueur ? $tatoueur->disponibilites : null // Cela envoie les données JSON directement
+
+        // ]);
+        // return response()->json(['tatoueur' => $tatoueur->fresh()], 200);
+
     }
 
     // Suppression d'un tatoueur
