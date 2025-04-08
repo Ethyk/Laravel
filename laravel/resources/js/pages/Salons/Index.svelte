@@ -1,131 +1,135 @@
+<!-- <script>
+    import { Link, page } from '@inertiajs/svelte';
+    // import { Button } from '@/components/ui/button';
+    // import {
+    //     Dialog,
+    //     DialogClose,
+    //     DialogContent,
+    //     DialogDescription,
+    //     DialogFooter,
+    //     DialogHeader,
+    //     DialogTitle,
+    //     DialogTrigger,
+    // } from '@/components/ui/dialog';
+    import Label from '@/components/ui/label/label.svelte';
+    import Input from '@/components/ui/input/input.svelte';
+    import InputError from '@/components/InputError.svelte';
+    import { inertia, useForm } from '@inertiajs/svelte';
+
+    import {
+        Button,
+        buttonVariants
+    } from "@/components/ui/button/index.js";
+    import * as Dialog from "@/components/ui/dialog/index";
+
+
+
+    let { auth:user, salons } = $props()
+
+    // export let salons = [];
+    let selectedSalon = null;
+    let showModal = $state(false);
+
+    function openModal(salon) {
+        selectedSalon = salon;
+        showModal = true;
+    }
+
+    function closeModal() {
+        showModal = false;
+        selectedSalon = null;
+    }
+</script> -->
+
 <script lang="ts">
-    import PlaceholderPattern from '@/components/PlaceholderPattern.svelte';
-    import AppLayout from '@/layouts/AppLayout.svelte';
-    import { type BreadcrumbItem } from '@/types';
-  
-    import { onMount } from 'svelte';
-    // import { page } from '$app/stores';
-  
-    import { inertia, Link, page } from '@inertiajs/svelte';
-    import TextLink from '@/components/TextLink.svelte';
-    import Button from '@/components/ui/button/button.svelte';
-  
-    let user = $derived($page.props.auth.user);
-  
-    // Accès aux props envoyées depuis Laravel
-    // let tatoueurs = $page.props.tatoueurs || [];
-    // let tatoueurs = $derived($page.props.tatoueurs|| []);
-    let salons = $derived($page.props.salons|| []); 
-  
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: 'Dashboard',
-            href: '/dashboard',
-        },
-    ];
-    // const submit = (e: Event) => {
-    //     e.preventDefault();
-    //     $form.post(route('login'), {
-    //         onFinish: () => $form.reset('password'),
-    //     });
-    // };
-  </script>
-  
-  <svelte:head>
-    <title>Dashboard</title>
-  </svelte:head>
-  
-  <AppLayout {breadcrumbs}>
+    import { Link, page } from '@inertiajs/svelte';
+    // import { Button } from '@/components/ui/button';
+    // import {
+    //     Dialog,
+    //     DialogClose,
+    //     DialogContent,
+    //     DialogDescription,
+    //     DialogFooter,
+    //     DialogHeader,
+    //     DialogTitle,
+    //     DialogTrigger,
+    // } from '@/components/ui/dialog';
+    import Label from '@/components/ui/label/label.svelte';
+    import Input from '@/components/ui/input/input.svelte';
+    import InputError from '@/components/InputError.svelte';
+    import { inertia, useForm } from '@inertiajs/svelte';
+    import SalonDialog from './SalonDialog.svelte'; // Assurez-vous que le chemin est correct
 
-    <div class="space-y-4 px-4 pt-4">
-      
-      <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <!-- <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-            <a href="/salon/create" class="absolute z-10" use:inertia>Home</a>
-                <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-        </div> -->
-        <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex justify-center items-center">
-          <!-- <a href="/salon/create" class="z-10" use:inertia>nouveau salon</a> -->
-          {#if salons.length > 0}
-              <Link href="/salons/{salons[0].id}"
-              class="z-10 inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-              method="get" as="button">Editer le salon  {salons[0].name}</Link>
-          {:else}
-            <Link href="/salons/create"
-            class="z-10 inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-            method="get" as="button">nouveau salon</Link>
-          {/if}
-          
 
-          <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-      </div>
-      
+    import {
+        Button,
+        buttonVariants
+    } from "@/components/ui/button/index.js";
+    import * as Dialog from "@/components/ui/dialog/index";
 
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-            </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-            </div>
-        </div>
-        <div class="relative h-[calc(100vh-21rem)] overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex justify-center items-center">
-        <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-            <div class="text-center">
-              {#if salons.length > 0}
-                  <p>Le tableau contient {salons.length} Salon(s).</p>
-                  <ul>
-                      {#each salons as item}
-                          <li>Salon : {item.name}</li>
-                    <!-- {JSON.stringify(item, null, 2)} -->
 
-                      {/each}
-                  </ul>
-              {:else}
-                  <p>Vous n avez ou n'apartenez a aucun salon, <br /> la liste est vide.</p>
-              {/if}
-              <!-- <h1>Liste des tatoueurs</h1>
-              {#if status}
-                <div class="alert">{status}</div>
-              {/if}
-              <ul>
-                {#each salons as salon}
-                  <li> -->
-                    <!-- {JSON.stringify(tatoueur, null, 2)} -->
-                    <!-- {user.name} {user.name}
-                    {#if salon.description}
-                    <div class="salons">
-                        <span>{salon.description}</span>
-                    </div>
-                    {/if}
-                  </li>
-                {/each}
-              </ul> -->
-            </div>
-        </div>
-    </div>
-  
-  </AppLayout>
-  
-  
-  
-  
-  <style>
-    .alert {
-      color: green;
-      margin-bottom: 1rem;
+
+    // export let salon = null;
+    // export let isOpen = false;
+    // export let onClose = () => {};
+
+    // const form = useForm({
+    //     id: salon ? salon.id : null,
+    //     name: salon ? salon.name : '',
+    //     description: salon ? salon.description : '',
+    //     adresse: salon ? salon.adresse : '',
+    //     ville: salon ? salon.ville : '',
+    //     code_postal: salon ? salon.code_postal : '',
+    //     pays: salon ? salon.pays : '',
+    // });
+
+    // function submit() {
+    //     if (salon) {
+    //         form.put(`/salons/${salon.id}`);
+    //     } else {
+    //         form.post('/salons');
+    //     }
+    // }
+    let { auth:user, salons, csrf_token } = $props()
+
+    // export let salons = [];
+    let selectedSalon = $state(null);
+    let isDialogOpen = $state(false);
+
+    function openDialog(salon) {
+        // console.log("dsas")
+        selectedSalon = salon;
+        isDialogOpen = true;
     }
-    ul {
-      list-style: none;
-      padding: 0;
+
+    function closeDialog() {
+        isDialogOpen = false;
+        selectedSalon = null; // Réinitialiser le salon sélectionné
     }
-    li {
-      margin-bottom: 1rem;
-      padding: 1rem;
-      border: 1px solid #eee;
-    }
-    .salons {
-      margin-top: 0.5rem;
-      font-size: 0.9em;
-      color: #666;
-    }
-  </style>
+</script>
+
+<h1>Liste des Salons</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {#each salons as salon}
+            <tr>
+                <td>{salon.name}</td>
+                <td>{salon.description}</td>
+                <td>
+                    <Button class={buttonVariants({ variant: "outline" })} onclick={() => openDialog(salon)}>
+                        Modifier
+                    </Button>
+                </td>
+            </tr>
+        {/each}
+    </tbody>
+</table>
+
+<SalonDialog salon={selectedSalon} {csrf_token} isOpen={isDialogOpen} onClose={closeDialog} />

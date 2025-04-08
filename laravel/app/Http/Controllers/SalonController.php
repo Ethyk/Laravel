@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Salon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
 
 class SalonController extends Controller
 {
@@ -24,7 +25,8 @@ class SalonController extends Controller
         // dd($salons->id); 
         // Retourner une vue avec les salons
         return inertia('Salons/Index', [
-            'salons' => $salons
+            'salons' => $salons,
+            'csrf_token' => csrf_token(), // Injecte le token CSRF dans la réponse
         ]);
 
     }
@@ -112,7 +114,9 @@ class SalonController extends Controller
      */
     public function edit(Salon $salon)
     {
-        //
+        return Inertia::render('Salons/Edit', [
+            'salon' => $salon,
+        ]);
     }
 
     /**

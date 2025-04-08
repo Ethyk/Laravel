@@ -1,142 +1,50 @@
 <script>
-    import { onMount } from "svelte";
-    // import { Inertia } from '@inertiajs/inertia';
-    // import { inertia } from '@inertiajs/svelte';
-    // import { router } from '@inertiajs/svelte';
-  import { Link, page, useForm, router } from '@inertiajs/svelte';
+    import { inertia, useForm } from '@inertiajs/svelte';
 
-
-    // let salon = useForm({
-    //     name: '',
-    //     description:'',
-    //     adresse: '',
-    //     ville: '',
-    //     code_postal: '',
-    //     pays: '',
-    //     _token:  $page.props.csrf_token,
-    // });
-    let { salon:initdata, auth } = $props()
-    // let { user } = auth; 
-    const salon = useForm({
-        ...initdata,
-        _token: $page.props.csrf_token,
+    const form = useForm({
+        name: '',
+        description: '',
+        adresse: '',
+        ville: '',
+        code_postal: '',
+        pays: '',
     });
 
- 
-    // const submitSalon = () => $salon.post(route('salons.store'));
-    const submit = () => $salon.submit('post', route('salons.store', salon), {
-        preserveScroll: true,
-        onSuccess: () => {
-                alert('Salon créé avec succès !');
-        },
-    })
-
-
-
-    // const submitSalon = () => {
-    //     router.post('/salons', salon);
-    // };
-
-    // const submitSalon = () => {
-    //     $salon.post(route('salons.store'));
-    // };
-
-    // function submit(e) {
-    //     e.preventDefault()
-    //     router.post('/salons', salon)
-    // }
-
+    function submit() {
+        form.post('/salons');
+    }
 </script>
 
-<div class="container mx-auto">
-    <h1 class="text-xl font-bold">Créer un salon</h1>
-    <form on:submit|preventDefault={submit} class="space-y-4">
-        <div>
-            <label for="name" class="block text-sm font-medium">Nom du Salon</label>
-            <input
-                id="name"
-                type="text"
-                bind:value={$salon.name}
-                class="w-full border rounded px-4 py-2"
-                placeholder="Nom du salon"
-            />
-            {#if $salon.errors.name}
-            <p class="text-red-500 text-sm mt-1">{$salon.errors.name}</p>
-        {/if}
-        </div>
-        <div>
-            <label for="description" class="block text-sm font-medium">Description du Salon</label>
-            <input
-                id="description"
-                type="text"
-                bind:value={$salon.description}
-                class="w-full border rounded px-4 py-2"
-                placeholder="Nom du salon"
-            />
-            {#if $salon.errors.description}
-            <p class="text-red-500 text-sm mt-1">{$salon.errors.description}</p>
-        {/if}
-        </div>
-        
-        <div>
-            <label for="adresse" class="block text-sm font-medium">Adresse</label>
-            <input
-                id="adresse"
-                type="text"
-                bind:value={$salon.adresse}
-                class="w-full border rounded px-4 py-2"
-                placeholder="Adresse du salon"
-            />
-            {#if $salon.errors.adresse}
-            <p class="text-red-500 text-sm mt-1">{$salon.errors.adresse}</p>
-        {/if}
-        </div>
-        <div>
-            <label for="ville" class="block text-sm font-medium">ville</label>
-            <input
-                id="ville"
-                type="text"
-                bind:value={$salon.ville}
-                class="w-full border rounded px-4 py-2"
-                placeholder="Adresse du salon"
-            />
-            {#if $salon.errors.ville}
-            <p class="text-red-500 text-sm mt-1">{$salon.errors.ville}</p>
-        {/if}
-        </div>
-        <div>
-            <label for="code_postal" class="block text-sm font-medium">code postal</label>
-            <input
-                id="code_postal"
-                type="text"
-                bind:value={$salon.code_postal}
-                class="w-full border rounded px-4 py-2"
-                placeholder="Adresse du salon"
-            />
-            {#if $salon.errors.code_postal}
-            <p class="text-red-500 text-sm mt-1">{$salon.errors.code_postal}</p>
-        {/if}
-        </div>
-        <div>
-            <label for="pays" class="block text-sm font-medium">pays</label>
-            <input
-                id="pays"
-                type="text"
-                bind:value={$salon.pays}
-                class="w-full border rounded px-4 py-2"
-                placeholder="Adresse du salon"
-            />
-            {#if $salon.errors.pays}
-            <p class="text-red-500 text-sm mt-1">{$salon.errors.pays}</p>
-        {/if}
-        </div>
-        <button
-            type="submit"
-            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-            Soumettre
-        </button>
-    
-
-    </form>
-</div>
+<h1>Créer un Salon</h1>
+<form on:submit|preventDefault={submit}>
+    <div>
+        <label>Nom:</label>
+        <input type="text" bind:value={$form.name} required />
+        {#if $form.errors.name}<span>{$form.errors.name}</span>{/if}
+    </div>
+    <div>
+        <label>Description:</label>
+        <textarea bind:value={f$orm.description}></textarea>
+    </div>
+    <div>
+        <label>Adresse:</label>
+        <input type="text" bind:value={form.adresse} required />
+        {#if form.errors.adresse}<span>{form.errors.adresse}</span>{/if}
+    </div>
+    <div>
+        <label>Ville:</label>
+        <input type="text" bind:value={form.ville} required />
+        {#if form.errors.ville}<span>{form.errors.ville}</span>{/if}
+    </div>
+    <div>
+        <label>Code Postal:</label>
+        <input type="text" bind:value={form.code_postal} required />
+        {#if form.errors.code_postal}<span>{form.errors.code_postal}</span>{/if}
+    </div>
+    <div>
+        <label>Pays:</label>
+        <input type="text" bind:value={form.pays} required />
+        {#if form.errors.pays}<span>{form.errors.pays}</span>{/if}
+    </div>
+    <button type="submit">Créer</button>
+</form>
