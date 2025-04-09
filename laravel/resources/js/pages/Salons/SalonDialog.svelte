@@ -10,7 +10,8 @@
     import InputError from '@/components/InputError.svelte';
   
     let { salon = null, isOpen = false, onClose = () => {}, csrf_token = 0x42 } = $props();
-    const form = useForm({
+
+     const defaultForm = $state({
         id: null,
         name: '',
         description: '',
@@ -18,20 +19,19 @@
         ville: '',
         code_postal: '',
         pays: '',
-        _token: csrf_token
+        _token: '' //csrf_token
     });
-    function updateForm(data) {
-        $form.id = data?.id ?? null;
-        $form.name = data?.name ?? '';
-        $form.description = data?.description ?? '';
-        $form.adresse = data?.adresse ?? '';
-        $form.ville = data?.ville ?? '';
-        $form.code_postal = data?.code_postal ?? '';
-        $form.pays = data?.pays ?? '';
-    }
+    const form = useForm(defaultForm);
+    let prevId = $state(null);
+    //TODO fix create salon
     $effect(() => {
-        updateForm(salon || {});
+        if (salon?.id === prevId) 
+            return ;
+        $form.defaults({...defaultForm, ...(salon || {}), _token: csrf_token}).reset()
+        prevId = salon?.id
+        
     });
+
   
     function submit(e) {
         e.preventDefault();
@@ -51,7 +51,7 @@
             $form.post('/salons/',{
             preserveScroll: true,
             onSuccess: () => {
-                $form.defaults() //// $form.data() contient les data
+                $form.defaults({...defaultForm}) //// $form.data() contient les data
                 $form.clearErrors();
                 $form.reset();
                 onClose();
