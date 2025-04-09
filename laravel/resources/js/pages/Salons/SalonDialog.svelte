@@ -32,35 +32,19 @@
         
     });
 
-  
     function submit(e) {
         e.preventDefault();
-        if (salon) {
-            $form.patch(`/salons/${salon.id}`,{
+        const options = {
             preserveScroll: true,
             onSuccess: () => {
-                $form.defaults() //// $form.data() contient les data
-                $form.clearErrors();
-                $form.reset();
+                $form.defaults({...defaultForm}).clearErrors().reset();
                 onClose();
             },
             onError: (err) => console.log(err)
-            ,
-        });
-        } else {
-            $form.post('/salons/',{
-            preserveScroll: true,
-            onSuccess: () => {
-                $form.defaults({...defaultForm}) //// $form.data() contient les data
-                $form.clearErrors();
-                $form.reset();
-                onClose();
-            },
-            onError: (err) => {
-                // errors = err; // Affiche les erreurs retournées par le backend
-            },
-        });
-        }
+        };
+        salon
+            ? $form.patch(`/salons/${salon.id}`, options)
+            : $form.post(`/salons/`, options);
     }
 </script>
 
