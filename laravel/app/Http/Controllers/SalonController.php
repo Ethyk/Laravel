@@ -19,12 +19,12 @@ class SalonController extends Controller
         $user = auth()->user();
 
         // Filtrer les salons qui appartiennent à cet utilisateur
-        $salons = Salon::where('gestionnaire_id', $user->id)->get();
+        $salons = Salon::where('gestionnaire_id', $user->id)->orderBy('created_at', 'desc')->get();
 
         
         // dd($salons->id); 
         // Retourner une vue avec les salons
-        return inertia('Salons/Index', [
+        return inertia('Salons/Index2', [
             'salons' => $salons,
             'csrf_token' => csrf_token(), // Injecte le token CSRF dans la réponse
         ]);

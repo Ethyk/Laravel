@@ -109,6 +109,28 @@
     </Dialog.Content>
 </Dialog.Root>
 
-Debug [form.data]:
+<!-- Debug [form.data]: -->
 <!-- <pre>{JSON.stringify($form.isDirty, null, 2)}</pre> -->
-<pre>{JSON.stringify($form.data(), null, 2)}</pre>
+<!-- <pre>{JSON.stringify($form.data(), null, 2)}</pre> -->
+<div class=" debug-containerv fixed bottom-4 left-4 w-auto max-w-sm bg-black/80 border border-red-500 shadow-lg rounded-lg overflow-hidden">
+    <!-- Entête -->
+    <div class="  bg-red-900 text-white px-4 py-2 text-sm font-mono uppercase border-b border-red-500">
+      Debug Information Modal
+    </div>
+    
+    <!-- Contenu -->
+    <div class="px-4 py-3  bg-black/95 text-white text-xs font-mono">
+      <!-- Données JSON -->
+      <div class="bg-black/95 p-2  text-left  rounded overflow-auto text-white text-xs font-mono whitespace-pre-wrap">
+        {JSON.stringify($form.data(), null, 2)}
+      </div>
+      
+      <!-- Bouton de fermeture -->
+      <button 
+        class="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-xs font-mono transition-colors duration-200"
+        onclick={() => document.querySelector('.debug-containerv').remove()}
+      >
+        Fermer
+      </button>
+    </div>
+  </div>

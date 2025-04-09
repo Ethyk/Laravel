@@ -1,0 +1,238 @@
+<!-- <script>
+    import { Link, page } from '@inertiajs/svelte';
+    // import { Button } from '@/components/ui/button';
+    // import {
+    //     Dialog,
+    //     DialogClose,
+    //     DialogContent,
+    //     DialogDescription,
+    //     DialogFooter,
+    //     DialogHeader,
+    //     DialogTitle,
+    //     DialogTrigger,
+    // } from '@/components/ui/dialog';
+    import Label from '@/components/ui/label/label.svelte';
+    import Input from '@/components/ui/input/input.svelte';
+    import InputError from '@/components/InputError.svelte';
+    import { inertia, useForm } from '@inertiajs/svelte';
+
+    import {
+        Button,
+        buttonVariants
+    } from "@/components/ui/button/index.js";
+    import * as Dialog from "@/components/ui/dialog/index";
+
+
+
+    let { auth:user, salons } = $props()
+
+    // export let salons = [];
+    let selectedSalon = null;
+    let showModal = $state(false);
+
+    function openModal(salon) {
+        selectedSalon = salon;
+        showModal = true;
+    }
+
+    function closeModal() {
+        showModal = false;
+        selectedSalon = null;
+    }
+</script> -->
+
+<script lang="ts">
+    import { Link, page } from '@inertiajs/svelte';
+    import Label from '@/components/ui/label/label.svelte';
+    import Input from '@/components/ui/input/input.svelte';
+    import InputError from '@/components/InputError.svelte';
+    import { inertia, useForm } from '@inertiajs/svelte';
+    import SalonDialog from './SalonDialog.svelte';
+    import { type BreadcrumbItem } from '@/types';
+
+
+    import {
+        Button,
+        buttonVariants
+    } from "@/components/ui/button/index.js";
+    import * as Dialog from "@/components/ui/dialog/index";
+
+
+    import { router } from '@inertiajs/svelte'
+    import { onDestroy } from 'svelte';
+    import AppLayout from '@/layouts/AppLayout.svelte';
+    import PlaceholderPattern from '@/components/PlaceholderPattern.svelte';
+
+    let { auth:user, salons, csrf_token } = $props()
+
+    // //auto refresh
+    // let intervalId;
+    // function startAutoRefresh() {
+    //     intervalId = setInterval(() => {
+    //         router.reload({ only: ['salons'] })
+    //     }, 5000); // Vérifie toutes les 5 secondes
+    // }
+    // onDestroy(() => {
+    //     clearInterval(intervalId); // Nettoie l'intervalle lorsque le composant est détruit
+    // });
+    // startAutoRefresh();
+    function refreshData() {
+        router.reload({ only: ['salons'] })
+        console.log(salons);
+    };
+    
+
+    // export let salons = [];
+    let selectedSalon = $state(null);
+    let isDialogOpen = $state(false);
+
+    function openDialog(salon) {
+        selectedSalon = salon;
+        isDialogOpen = true;
+    }
+
+    function closeDialog() {
+        isDialogOpen = false;
+        selectedSalon = null; // Réinitialiser le salon sélectionné
+    }
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        },
+    ];
+
+
+</script>
+
+<svelte:head>
+    <title>Dashboard</title>
+  </svelte:head>
+
+
+
+<AppLayout {breadcrumbs}>
+
+    <div class="space-y-4 px-4 pt-4">
+      
+      <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+        <!-- <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+            <a href="/salon/create" class="absolute z-10" use:inertia>Home</a>
+                <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+        </div> -->
+        <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex justify-center items-center">
+          <!-- <a href="/salon/create" class="z-10" use:inertia>nouveau salon</a> -->
+          {#if salons.length > 0}
+              <Link href="/salons/{salons[0].id}"
+              class="z-10 inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+              method="get" as="button">Editer le salon  {salons[0].name}</Link>
+          {:else}
+            <Link href="/salons/create"
+            class="z-10 inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+            method="get" as="button">nouveau salon</Link>
+          {/if}
+          
+
+          <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+      </div>
+      
+
+            <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+            </div>
+            <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                <PlaceholderPattern class="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+            </div>
+        </div>
+        <div class="relative h-[calc(100vh-21rem)] overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex justify-center items-center">
+            <div class="text-center z-10">
+              {#if salons.length > 0}
+                  <p>Le tableau contient {salons.length} Salon(s).</p>
+                  <div class ="z-10">
+                    <h1>Liste des Salons</h1>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class ="z-10">
+                            {#each salons as salon}
+                                <tr>
+                                    <td>{salon.name}</td>
+                                    <td>{salon.description}</td>
+                                    <td>
+                                        <Button class={buttonVariants({ variant: "outline" })} onclick={() => openDialog(salon)}>
+                                            Modifier
+                                        </Button>
+                                    </td>
+                                </tr>
+                            {/each}
+                            <Button class={buttonVariants({ variant: "outline" })} onclick={() => openDialog(null)}>
+                                Créer Salon
+                            </Button>
+                            <Button class={buttonVariants({ variant: "outline" })} onclick={() => refreshData()}>
+                                Rafraîchir
+                            </Button>
+                            
+                        </tbody>
+                    </table>
+                    
+                    <SalonDialog salon={selectedSalon} {csrf_token} isOpen={isDialogOpen} onClose={closeDialog} />
+                    
+                 
+                    <div class="debug-container fixed bottom-4 right-4 w-auto max-w-sm bg-black/80 border border-red-500 shadow-lg rounded-lg overflow-hidden">
+                        <!-- Entête -->
+                        <div class="bg-red-900 text-white px-4 py-2 text-sm font-mono uppercase border-b border-red-500">
+                          Debug Information
+                        </div>
+                        
+                        <!-- Contenu -->
+                        <div class="px-4 py-3  bg-black/95 text-white text-xs font-mono">
+                          <!-- Données JSON -->
+                          <div class="bg-black/95 p-2  text-left  rounded overflow-auto text-white text-xs font-mono whitespace-pre-wrap">
+                            {JSON.stringify(selectedSalon, null, 2)}
+                          </div>
+                          
+                          <!-- Bouton de fermeture -->
+                          <button 
+                            class="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-xs font-mono transition-colors duration-200"
+                            onclick={() => document.querySelector('.debug-container').remove()}
+                          >
+                            Fermer
+                          </button>
+                        </div>
+                      </div>
+                    
+                </div>
+              {:else}
+                  <p>Vous n avez ou n'apartenez a aucun salon, <br /> la liste est vide.</p>
+              {/if}
+              <!-- <h1>Liste des tatoueurs</h1>
+              {#if status}
+                <div class="alert">{status}</div>
+              {/if}
+              <ul>
+                {#each salons as salon}
+                  <li> -->
+                    <!-- {JSON.stringify(tatoueur, null, 2)} -->
+                    <!-- {user.name} {user.name}
+                    {#if salon.description}
+                    <div class="salons">
+                        <span>{salon.description}</span>
+                    </div>
+                    {/if}
+                  </li>
+                {/each}
+              </ul> -->
+            </div>
+        <PlaceholderPattern class=" absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+
+        </div>
+    </div>
+  
+  </AppLayout>
+  
