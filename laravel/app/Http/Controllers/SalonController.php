@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Salon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class SalonController extends Controller
@@ -72,15 +73,15 @@ class SalonController extends Controller
        
         $user = auth()->user(); // Récupère l'utilisateur connecté
 
-
+        try {
         // Validation des données
         $validatedData = $request->validate([
             'name' => 'required|string|max:255|min:3',
-            'description' => 'nullable|string',
-            'adresse' => 'required|string|max:255',
-            'ville' => 'required|string|max:255',
-            'code_postal' => 'required|string|max:10',
-            'pays' => 'required|string|max:255',
+            'description' => 'required|string|min:3',
+            'adresse' => 'required|string|max:255|min:3',
+            'ville' => 'required|string|max:255|min:3',
+            'code_postal' => 'required|string|max:250|min:3',
+            'pays' => 'required|string|max:255|min:3',
         ]);
 
         // Création du salon dans la base de données
@@ -94,8 +95,28 @@ class SalonController extends Controller
             'gestionnaire_id' => $user->id,
         ]);
 
-        return to_route('salons.index')->with('success', 'Salon créé avec succès.');
+        // return to_route('salons.index', ['newSalonId' => $salon->id,])->with([
+        //     'success' => 'Salon '. $salon->name .' créé avec succès.',
+        //     // 'newSalonId' => $salon->id, // Inclure l'ID du salon créé
+        // ]);
+       
+        // return Inertia::render('Salons/Index2', [
+        //     'flash' => ['success' => 'Salon '. $salon->name .' créé avec succès.'],
+        //     'newSalon' => $salon, // Inclure l'objet salon ou ses données nécessaires
+        //     'salons' => Salon::all(), // Liste des salons si nécessaire
+        // ])->with('success', 'Salon '. $salon->name .' créé avec succès.');
 
+        return to_route('salons.index')->with('success', 'Salon '. $salon->name .' créé avec succès.');
+
+    } catch (ValidationException $e) {
+        // Si la validation échoue, redirigez avec des erreurs personnalisées
+        // dd($e->getMessage());
+        return back()
+            ->withErrors($e->errors()) // Récupère les erreurs
+            ->withInput()
+            ->with('error', $e->getMessage());
+             // Conserve les données saisies
+    }
         // return redirect()->route('salons.index')->with('success', 'Salon créé avec succès.');
     }
 
@@ -131,11 +152,11 @@ class SalonController extends Controller
         // Validation des données
         $validatedData = $request->validate([
             'name' => 'required|string|max:255|min:3',
-            'description' => 'nullable|string',
-            'adresse' => 'required|string|max:255',
-            'ville' => 'required|string|max:255',
-            'code_postal' => 'required|string|max:10',
-            'pays' => 'required|string|max:255',
+            'description' => 'required|string|max:255|min:3',
+            'adresse' => 'required|string|max:255|min:3',
+            'ville' => 'required|string|max:255|min:3',
+            'code_postal' => 'required|string|max:10|min:3',
+            'pays' => 'required|string|max:255|min:3',
         ]);
 
         // dd($validatedData);
@@ -143,7 +164,7 @@ class SalonController extends Controller
          // Mise à jour des données
         $salon->update($validatedData);
         // dd($validatedData);
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Salon mis à jour avec succès.');
 
         // return redirect()->route('salons.index', $salon)->with('success', 'Salon mis à jour avec succès.');
     }
@@ -153,6 +174,33 @@ class SalonController extends Controller
      */
     public function destroy(Salon $salon)
     {
-        //
+        // $user = $request->user();
+        if (auth()->user()->id == $salon->gestionnaire_id){
+            $salon->delete();
+            return redirect()->route('salons.index')->with('success', 'Salon ['.$salon->name.'] supprimé avec succès.');
+        }
+        return redirect()->route('salons.index')->with('error', 'Une erreur est survenue.');
+
+        // dd(auth()->user());
+        // dd($salon.gestionnaire_id);
     }
 }
+
+
+// public function destroy(Request $request): RedirectResponse
+// {
+//     $request->validate([
+//         'password' => ['required', 'current_password'],
+//     ]);
+
+//     $user = $request->user();
+
+//     Auth::logout();
+
+//     $user->delete();
+
+//     $request->session()->invalidate();
+//     $request->session()->regenerateToken();
+
+//     return redirect('/');
+// }

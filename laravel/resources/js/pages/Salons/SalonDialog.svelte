@@ -9,7 +9,7 @@
     import Input from '@/components/ui/input/input.svelte';
     import InputError from '@/components/InputError.svelte';
   
-    let { salon = null, isOpen = false, onClose = () => {}, csrf_token = 0x42 } = $props();
+    let { salon = null, isOpen = false, onClose = () => {}, csrf_token = 0x42, flash } = $props();
 
      const defaultForm = $state({
         id: null,
@@ -40,7 +40,7 @@
                 $form.defaults({...defaultForm}).clearErrors().reset();
                 onClose();
             },
-            onError: (err) => console.log(err)
+            onError: (err) => console.log(err) 
         };
         salon
             ? $form.patch(`/salons/${salon.id}`, options)
