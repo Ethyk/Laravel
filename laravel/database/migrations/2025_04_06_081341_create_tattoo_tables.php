@@ -24,6 +24,7 @@ return new class extends Migration
             // $table->uuid('gestionnaire_id')->nullable()->references('id')->on('users')->onDelete('set null');
             $table->timestamp('created_at')->default(\Illuminate\Support\Facades\DB::raw('now()'));
             $table->timestamp('updated_at')->default(\Illuminate\Support\Facades\DB::raw('now()'));
+            $table->softDeletes(); // Adds a nullable 'deleted_at' column
         });
 
         // Table tatoueurs
@@ -124,6 +125,9 @@ return new class extends Migration
         Schema::dropIfExists('tatoueurs_salons');
         Schema::dropIfExists('salons');
         Schema::dropIfExists('tatoueurs');
+        // Schema::table('salons', function (Blueprint $table) {
+        //     $table->dropSoftDeletes(); // Supprime la colonne 'deleted_at'
+        // });
         // Schema::dropIfExists('users');
     }
 };

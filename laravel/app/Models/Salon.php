@@ -6,10 +6,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Salon extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'id';
     public $incrementing = false;
@@ -41,6 +42,11 @@ class Salon extends Model
         return $this->belongsToMany(Tatoueur::class, 'tatoueurs_salons', 'salon_id', 'tatoueur_id')
             ->withPivot(['date_debut', 'date_fin'])
             ->withTimestamps();
+    }
+
+    public static function getLastCreated()
+    {
+        return self::latest('created_at')->first();
     }
 }
 

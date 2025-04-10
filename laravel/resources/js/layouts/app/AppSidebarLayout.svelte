@@ -16,16 +16,16 @@
     let { breadcrumbs = [], children, flash = {} }: Props = $props();
      // Afficher les messages flash au chargement
      
-     $effect(() => {
-         if (flash.success) {
-             toast.success(flash.success); // Message de succès
-            }
+    //  $effect(() => {
+    //      if (flash.success) {
+    //          toast.success(flash.success); // Message de succès
+    //         }
             
-            if (flash.error) {
-                toast.error(flash.error); // Message d'erreur
-            }
-            console.log(flash);
-    });
+    //         if (flash.error) {
+    //             toast.error(flash.error); // Message d'erreur
+    //         }
+    //         console.log(flash);
+    // });
 
 </script>
 

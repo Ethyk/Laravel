@@ -18,6 +18,8 @@ Route::get('dashboard', function () {
 
 
 Route::resource('salons', SalonController::class)->middleware(['auth:web']);
+Route::post('/salons/{id}/restore', [SalonController::class, 'restore'])->name('salons.restore');
+Route::delete('/salons/{id}/force-delete', [SalonController::class, 'forceDelete'])->name('salons.forceDelete');
 
 Route::resource('tatoueurs', TatoueurController::class);
 // Routes supplémentaires si besoin

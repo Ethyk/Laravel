@@ -20,13 +20,16 @@ class SalonController extends Controller
         $user = auth()->user();
 
         // Filtrer les salons qui appartiennent à cet utilisateur
-        $salons = Salon::where('gestionnaire_id', $user->id)->orderBy('created_at', 'desc')->get();
+        $salons = $salons = Salon::withTrashed()->where('gestionnaire_id', $user->id)->orderBy('created_at', 'desc')->get();
 
+        $lastSalon = Salon::getLastCreated();
         
+        // dd($lastSalon); 
         // dd($salons->id); 
         // Retourner une vue avec les salons
         return inertia('Salons/Index2', [
             'salons' => $salons,
+            'last' => $lastSalon,
             'csrf_token' => csrf_token(), // Injecte le token CSRF dans la réponse
         ]);
 
@@ -105,8 +108,24 @@ class SalonController extends Controller
         //     'newSalon' => $salon, // Inclure l'objet salon ou ses données nécessaires
         //     'salons' => Salon::all(), // Liste des salons si nécessaire
         // ])->with('success', 'Salon '. $salon->name .' créé avec succès.');
+        // $lastSalon = Salon::getLastCreated();
 
-        return to_route('salons.index')->with('success', 'Salon '. $salon->name .' créé avec succès.');
+        // return inertia('Salons/Index2', [
+        //     'salons' => $salons,
+        //     'last' => $lastSalon,
+        //     'csrf_token' => csrf_token(), // Injecte le token CSRF dans la réponse
+        // ]);
+
+        // return Inertia::render('Salons/Index2', ['last' => $lastSalon])
+        //     ->withViewData(['meta' => $lastSalon->meta]);
+
+        // return response()->json([
+        //     'dernier_salon' => $lastSalon
+        // ], 201);
+        // return to_route('salons.index')->with('success', 'Salon '. $salon->name .' créé avec succès.');
+        // return to_route('tatoueur.index')->with('success', 'Salon '. $salon->name .' créé avec succès.');
+        
+        return back()->with('success', 'Salon '. $salon->name .' créé avec succès.');
 
     } catch (ValidationException $e) {
         // Si la validation échoue, redirigez avec des erreurs personnalisées
@@ -149,24 +168,49 @@ class SalonController extends Controller
             abort(403, 'Action non autorisée.');
         }
 
-        // Validation des données
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255|min:3',
-            'description' => 'required|string|max:255|min:3',
-            'adresse' => 'required|string|max:255|min:3',
-            'ville' => 'required|string|max:255|min:3',
-            'code_postal' => 'required|string|max:10|min:3',
-            'pays' => 'required|string|max:255|min:3',
-        ]);
+        try { 
+            // Validation des données
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255|min:3',
+                'description' => 'required|string|max:255|min:3',
+                'adresse' => 'required|string|max:255|min:3',
+                'ville' => 'required|string|max:255|min:3',
+                'code_postal' => 'required|string|max:10|min:3',
+                'pays' => 'required|string|max:255|min:3',
+            ]);
 
-        // dd($validatedData);
-        
-         // Mise à jour des données
-        $salon->update($validatedData);
-        // dd($validatedData);
-        return redirect()->back()->with('success', 'Salon mis à jour avec succès.');
+            // dd($validatedData);
+            
+            // Mise à jour des données
+            $salon->update($validatedData);
 
-        // return redirect()->route('salons.index', $salon)->with('success', 'Salon mis à jour avec succès.');
+            return redirect()->back()->with('success', 'Salon mis à jour avec succès.');
+
+            // return redirect()->route('salons.index', $salon)->with('success', 'Salon mis à jour avec succès.');
+        } catch (ValidationException $e) {
+        // Si la validation échoue, redirigez avec des erreurs personnalisées
+        // dd($e->getMessage());
+        return back()
+            ->withErrors($e->errors()) // Récupère les erreurs
+            ->withInput()
+            ->with('error', $e->getMessage());
+             // Conserve les données saisies
+    }
+    }
+
+    public function restore($id)
+    {
+        // Récupérer le salon supprimé
+        $salon = Salon::withTrashed()->find($id);
+
+        if (!$salon) {
+            return redirect()->route('salons.index')->with('error', 'Salon non trouvé.');
+        }
+
+        // Restaurer le salon
+        $salon->restore();
+
+        return redirect()->route('salons.index')->with('success', 'Le salon a été restauré avec succès.');
     }
 
     /**
@@ -184,6 +228,25 @@ class SalonController extends Controller
         // dd(auth()->user());
         // dd($salon.gestionnaire_id);
     }
+
+    public function forceDelete($id)
+    {
+        // Récupérer le salon supprimé (soft deleted ou non)
+        $salon = Salon::withTrashed()->find($id);
+
+        if (!$salon) {
+            return redirect()->back()->with('error', 'Salon non trouvé.');
+
+            // return response()->json(['message' => 'Salon non trouvé.'], 404);
+        }
+
+        // Supprimer définitivement le salon
+        $salon->forceDelete();
+        return redirect()->back()->with('success', 'Salon supprimé définitivement avec succès.');
+
+        // return response()->json(['message' => 'Salon supprimé définitivement.']);
+    }
+
 }
 
 

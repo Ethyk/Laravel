@@ -23,7 +23,7 @@
     let isModalOpen = $state(false);
     let selectedItem = $state(null);
 
-    let { csrf_token, salons, flash} = $props()
+    let { csrf_token, salons, last, flash} = $props()
   
     const form = useForm({
         id: null,
@@ -64,11 +64,16 @@
             preserveScroll: true,
             onSuccess: (data: any) => {
                 if (data.props.flash.success)
-                  toast.success(flash.success)
+                  toast(flash.success, {
+                    action: {
+                      label: 'Restorer',
+                      onClick: () => $form.post(`salons/${salon.id}/restore`, {onSuccess: () => { toast.success(flash.success);} }),
+                    },
+                  });
                 else
                   toast.error(flash.error)
               
-                
+                  // salons/${salon.id}/restore
                 // toast.success($data.flash.success); // Message de succès
                 // $form.defaults({...defaultForm}).clearErrors().reset();
                 // onClose();
@@ -80,6 +85,9 @@
 
         };
         $form.delete(`/salons/${salon.id}`, options)
+    }
+    function restaursalon(salon) {
+      $form.post(`salons/${salon.id}/restore`, {onSuccess: () => { toast.success(flash.success);} });
     }
   </script>
   
@@ -96,23 +104,34 @@
     <!-- {#each $page.props.salons as salon} -->
     {#each salons as salon}
     
-      <div class="flex items-center justify-between p-4 border rounded-lg">
+      <div class="flex destructive items-center justify-between p-4 border rounded-lg">
         <div>
           <p>{salon.name}</p>
           <p class="text-muted-foreground">{salon.description}</p>
         </div>
-        <Button variant="outline" size="sm" onclick={() => openModal(salon)}>
+        <Button variant="outline" size="sm" onclick={() => openModal(salon)}  disabled={salon.deleted_at} >
           Éditer
         </Button>
-        <Button variant="outline" size="sm" onclick={() => delsalon(salon)}>
-          Suprimer
+        <Button variant={salon.deleted_at ?  'outline' : 'destructive'} size="sm" onclick={() => salon.deleted_at ?  restaursalon(salon) : delsalon(salon)}>
+          {salon.deleted_at ? 'Restaurer' : 'Archiver'}
+
         </Button>
+        {#if salon.deleted_at}
+        <Button variant='destructive' size="sm" onclick={() =>  $form.delete(`/salons/${salon.id}/force-delete`, {onSuccess: () => { toast.success(flash.success);} })}>
+          Suprimer Definitivement
+
+        </Button>
+        
+        {/if}
+        <!-- <pre>{JSON.stringify(salon, null, 2)}</pre> -->
+
       </div>
     {/each}
   
     <ModelModal
       bind:open={isModalOpen}
       form={form}
+      {last}
       {flash}
       title={selectedItem ? 'Édition utilisateur' : 'Nouvel utilisateur'}
       description="Gestion des accès administrateur"

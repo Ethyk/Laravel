@@ -46,6 +46,17 @@
   const form = useForm({
       ...tatoueur,
   });
+
+  const formsalon = useForm ({
+    id: null,
+    name: '',
+    description: '',
+    adresse: '',
+    ville: '',
+    code_postal: '',
+    pays: '',
+    // _token: '' //csrf_token
+  })
   
   const deleteUser = (e: Event) => {
       e.preventDefault();
@@ -78,6 +89,8 @@
     );
   const EditTatou = (e: Event) => {
       e.preventDefault();
+      
+      
 
       $form.patch(route('tatoueurs.update', tatoueur.id), {
           preserveScroll: true,            
@@ -91,18 +104,35 @@
   };
 
   // EditSalon
-  const EditSalon = (e, id) => {
+  const EditSalon = (e, salonForm) => {
       e.preventDefault();
+      $formsalon.id = salonForm.id;
+      // $formsalon.name = salonForm.name;
+      // $formsalon.description = salonForm.description;
+      // $formsalon.adresse = salonForm.adresse;
+      // $formsalon.ville = salonForm.ville;
+      // $formsalon.code_postal = salonForm.code_postal;
+      // $formsalon.pays = salonForm.pays;
+    
        // Get the updated salon data
-      let updatedSalon = $form.salons.find(salon => salon.id === id);
+      // let updatedSalon = $form.salons.find(salon => salon.id === salonForm.id);
       
-      router.patch(route('salons.update', id), updatedSalon, {
+          $formsalon.patch(route('salons.update', salonForm.id), {
           preserveScroll: true,
-          onError: (errors) => {if (response.props.tatoueur) {
-            const updatedTatoueur = response.props.tatoueur;
-          }
+          onSuccess: (response: any) => {     
+            console.log(response);
+            $form.defaults() //// $form.data() contient les data
+            
+            closeModal()
+          },
+          onError: (errors) => {
+          // (document.querySelector(`[name="${$form[key]}"]`)?.focus(), !!document.querySelector(`[name="${$form[key]}"]`))
+            // focusOnErrorField();
+            // console.log(errors);
+            // if (response.props.tatoueur) {
+            // const updatedTatoueur = response.props.tatoueur;
             console.log(errors);
-            console.log($form);             
+            console.log($formsalon);             
           },  
       });
   };
@@ -292,7 +322,7 @@
                           <Button variant="destructive">Edit Salon Details</Button>
                       </DialogTrigger>
                       <DialogContent>
-                        <form class="space-y-6" onsubmit={(e) => EditSalon(e, salon.id)}>
+                        <form class="space-y-6" onsubmit={(e) => EditSalon(e, salon)}>
                           <DialogHeader class="space-y-3">
                                   <DialogTitle>Edit Salon Details</DialogTitle>
                                   <DialogDescription>
@@ -302,11 +332,10 @@
                           </DialogHeader>
           
                               <div class="grid gap-2">
-                                  <Label for={`name-${salon.id}`}  class="sr-only">name</Label>
-                                  <Input id={`name-${salon.id}`} type="text" name={`name-${salon.id}`} bind:value={$form.salons[findIndex(salon.id, "salons")].name} placeholder={`${salon.name}`} />
-                                  {#if $form.errors.length > 0}
-                                  <InputError message={$form.errors?.salons[findIndex(salon.id)]?.name} />
-                                  {/if}
+                                  <Label for={`name}`}  class="sr-only">name</Label>
+                                  <Input id={`name`} type="text" name={`name`} bind:value={$formsalon.name} placeholder={`${salon.name}`} />
+                                  <InputError message={$formsalon.errors.name} />
+                                  
                               </div>
                               <div class="grid gap-2">
                                   <Label for={`description-${salon.id}`}  class="sr-only">description</Label>

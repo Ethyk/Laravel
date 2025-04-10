@@ -19,7 +19,8 @@
     form,
     title = '',
     description = '',
-    flash
+    flash,
+    last
   } = $props();
   
     // $: isEdit = !!form?.data?.id;
@@ -49,15 +50,16 @@
             // Toast pour update
             toast.success(flash.success);
           } else {
-            console.log("dataaaaaaa",data.props);
-            console.log("isEditi",isEdit);
-            console.log("data : ",$form.data())
+            // console.log("dataaaaaaa",data.props);
+            // console.log("last: ",last);
+            // console.log("isEditi",isEdit);
+            // console.log("data : ",$form.data())
             
             // Toast pour post avec action personnalisée
             toast(flash.success, {
               action: {
-                label: 'Undo',
-                onClick: () => $form.delete(`/salons/${data.props.salons[0].id}`, {onSuccess: () => { toast.success(flash.success);} }),
+                label: 'Annuler',
+                onClick: () => $form.delete(`/salons/${last.id}`, {onSuccess: () => { toast.success(flash.success);} }),
               },
             });
           }
@@ -65,7 +67,7 @@
           open = false;
           },
         onError: () => {
-          // console.log(flash)
+          console.log(flash)
           toast.error(flash.error)
           focusOnErrorField();
         }
