@@ -7,244 +7,148 @@ use App\Models\Tatoueur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule; // Important pour exists et url
 
 class TatoueurController extends Controller
 {
-    // Liste des tatoueurs
+    /**
+     * Affiche le profil du tatoueur connecté ou invite à en créer un.
+     * C'est la page principale de gestion du profil pour le tatoueur.
+     */
     public function index()
     {
-        // return Tatoueur::with(['user', 'salons', 'flashs'])->get();
-        // return Inertia::render('auth/ConfirmPassword');
+        $user = auth()->user(); // Ou auth()->guard('web')->user();
 
-        // $tatoueurs = Tatoueur::with(['user', 'salons', 'flashs'])->get();
-    
-        // // dd($tatoueurs);
-        // return Inertia::render('tatoueur/index', [
-        //     'tatoueurs' => $tatoueurs,
-        //     // 'salons' => [$salon]
-        // ]);
-
-        // $tatoueurs = Tatoueur::with(['user', 'salons', 'flashs'])->get();
-        // $tatoueurs = Tatoueur::get();
-
-        // 1. Obtenez l'utilisateur connecté
-        $user = auth()->guard('web')->user();
-
-        // dd($user->id);
-        // 2. Trouvez le tatoueur associé à cet utilisateur
+        // Trouve le profil tatoueur associé à l'utilisateur connecté
         $tatoueur = Tatoueur::where('user_id', $user->id)
-                    ->first();
-        // dd($tatoueur);
+            ->with([
+                'user:id,name,email', // Charger l'utilisateur associé (champs spécifiques)
+                'salonActuel:id,name,ville', // Charger le salon actuel (si défini et relation existe)
+                'salons:id,name,ville', // Charger les salons auxquels il est lié (si relation many-to-many existe)
+                'flashs', // Charger les flashs
+                'portfolios', // Charger les portfolios
+                'contractedSalons' // Charger les salons sous contrat
+                ])
+            ->first(); // Utilise first() car un utilisateur ne devrait avoir qu'un profil tatoueur
 
-        // $tatoueur = $user->tatoueur()
-        //             ->with(['salonActuel', 'salons', 'flashs'])
-        //             ->firstOrFail();
-        // dd($tatoueur);
-        // OU si vous avez défini la relation inverse dans User:
-        // $tatoueur = $user->tatoueur()->with('salonActuel')->firstOrFail();
-        // $salonActuel = $tatoueurs[0]->localisation_actuelle;
-        // $tatoueur = Tatoueur::with('salonActuel')->find($tatoueurId);
+        // Récupère tous les salons pour un éventuel selecteur dans le modal
+        // Utilisation de closure pour chargement paresseux (lazy loading) par Inertia
+        $salonsDisponibles = fn () => Salon::select('id', 'name', 'ville')->get();
 
-        // $salon = $tatoueurs->load('salonActuel');
-        // $salon = Salon::where('gestionnaire_id', $user->id)
-        //             // ->with('salonActuel')
-        //             ->firstOrFail();
-        // $tatoueur['salons'] = $salon;
-        // dd($tatoueur ? $tatoueur->disponibilites : []);
-        // dd($salon);
-        //  dd($tatoueur ?? [] ,);
+        // dd($tatoueur); // Pour débogage si besoin
 
-        // localisation_actuelle
-        // salon = Salon::get($tatoueurs->localisation_actuelle);
-
-
-        // $salon = Salon::find($salon_id);
-        // $tatoueurs = $salon->tatoueurs; // Liste des tatoueurs associés à ce salon
-        // $tatoueur = Tatoueur::find($tatoueur_id);
-        // $salons = $tatoueur->salons; // Liste des salons associés à ce tatoueur
-
-        $tatoueur->load(['user', 'salons', 'flashs', 'portfolios', 'contractedSalons']);
-        // dd($tatoueur);
-
-        return Inertia::render('tatoueur/index', [
-            'tatoueur' => $tatoueur ?? null ,
-            'disponibilites' => $tatoueur ? $tatoueur->disponibilites : null // Cela envoie les données JSON directement
-            // 'salons' => [$salon]
+        return Inertia::render('tatoueur/Index', [
+            'tatoueur' => $tatoueur, // Peut être null si l'utilisateur n'a pas encore de profil
+            'salonsDisponibles' => $salonsDisponibles, // Pour le champ 'localisation_actuelle'
+            'csrf_token' => csrf_token(),
+            // 'flash' est géré automatiquement par le middleware Inertia
         ]);
-
-        // $tatoueurs = Tatoueur::with([
-        //     'user:id,name,email', // Seulement les champs nécessaires
-        //     'salons:id,name,ville', 
-        //     // 'flashs:id,tatoueur_id,image_url,prix'
-        // ])->get();
-
-        // return Inertia::render('Tatoueur/Index', [
-        //     'tatoueurs' => $tatoueurs->map(function ($tatoueur) {
-        //         return [
-        //             'id' => $tatoueur->id,
-        //             'bio' => $tatoueur->bio,
-        //             'styles' => $tatoueur->style,
-        //             'instagram' => $tatoueur->instagram,
-        //             'user' => $tatoueur->user,
-        //             'salons' => $tatoueur->salons,
-        //             // 'flashs' => $tatoueur->flashs,
-        //             'created_at' => $tatoueur->created_at->format('d/m/Y'),
-        //         ];
-        //     })
-        // ]);
     }
 
-    // Création d'un tatoueur
+    /**
+     * Enregistre un nouveau profil tatoueur pour l'utilisateur connecté.
+     * Appelée par le formulaire modal en mode création.
+     */
     public function store(Request $request)
     {
-        // $validated = $request->validate([
-        //     // 'user_id' => 'required|exists:users,id',
-        //     'bio' => 'nullable|string',
-        //     'instagram' => 'nullable|string|max:255'
-        // ]);
-        // Validation des données
+        // Vérifier si l'utilisateur a déjà un profil (normalement géré par la logique front-end aussi)
+        $user = auth()->user();
+        if (Tatoueur::where('user_id', $user->id)->exists()) {
+             return redirect()->back()->with('error', 'Vous avez déjà un profil tatoueur.');
+        }
+
+        // Vérifier la permission (si une policy existe)
+        // Gate::authorize('create', Tatoueur::class);
+
         $validated = $request->validate([
-            'bio' => 'nullable|string',
-            'style' => 'nullable|json', // Attend un tableau
-            'localisation_actuelle' => 'nullable|uuid',
-            'disponibilites' => 'nullable|json', // Attend un tableau
-            'instagram' => 'nullable|url|max:255',
+            'bio' => 'nullable|string|max:2000',
+            'style' => 'nullable|json', // S'assurer que le front envoie bien du JSON valide ou un objet/tableau
+            'localisation_actuelle' => [
+                'nullable',
+                Rule::exists('salons', 'id') // Doit être un ID de salon valide ou null
+            ],
+            'disponibilites' => 'nullable|json', // S'assurer que le front envoie bien du JSON valide ou un objet/tableau
+            'instagram' => ['nullable', 'string', 'max:255', 'url:http,https'], // Valider comme URL
         ]);
-        // Validation des données envoyées par le formulaire
-        // $validated = $request->validate([
-        //     'bio' => 'nullable|string|max:1000', // La bio est facultative et peut contenir jusqu'à 1000 caractères
-        //     'style' => 'nullable|string|max:255', // Le style est obligatoire, limité à 255 caractères
-        //     'localisation_actuelle' => 'nullable|string|max:255', // La localisation actuelle est facultative
-        //     'disponibilites' => 'nullable|string|max:255', // Les disponibilités sont facultatives
-        //     'instagram' => 'nullable|url|max:255', // Le compte Instagram doit être un lien valide
-        // ]);
-        $user = auth()->user(); // Récupère l'utilisateur connecté
+
+        // Associer l'ID de l'utilisateur connecté
         $validated['user_id'] = $user->id;
 
-        // dd($validated);
-        Tatoueur::create($validated);
-        return to_route('tatoueurs.index')->with('success', 'tatoueur créé avec succès.');
+        // Gérer les champs JSON: s'assurer qu'ils sont bien encodés si besoin
+        // Note: Laravel peut gérer automatiquement l'encodage/décodage si $casts est défini dans le modèle Tatoueur
+        // Exemple: protected $casts = ['style' => 'array', 'disponibilites' => 'array'];
+        // Si $casts n'est pas utilisé, il faudrait peut-être encoder ici:
+        // $validated['style'] = isset($validated['style']) ? json_encode($validated['style']) : null;
+        // $validated['disponibilites'] = isset($validated['disponibilites']) ? json_encode($validated['disponibilites']) : null;
 
-    }
+        $tatoueur = Tatoueur::create($validated);
 
-    // Affichage d'un tatoueur spécifique
-    public function show(Tatoueur $tatoueur)
-    {
-        // dd($tatoueur->styles);
-        // dd($tatoueur);
-
-        $tatoueur->load(['user', 'salons', 'flashs', 'portfolios']);
-
-        return Inertia::render('tatoueur/Show', [
-            'csrf_token' => csrf_token(), // Injecte le token CSRF
-            'salons' => fn () => Salon::all(), // Liste des salons
-            'tatoueur' => $tatoueur,
-            'disponibilites' => $tatoueur ? $tatoueur->disponibilites : [], // Cela envoie les données JSON directement
-            'style' => $tatoueur ? $tatoueur->style : [] // Cela envoie les données JSON directement
-        ]);
-        // return $tatoueur->load(['user', 'salons', 'flashs', 'portfolios']);
-    }
-
-    // Mise à jour d'un tatoueur
-    public function update(Request $request, Tatoueur $tatoueur)
-    {
-        $validated = $request->validate([
-            // 'disponibilites' => 'nullable|json',
-            'bio' => 'nullable|string|min:4',
-            'style' => 'nullable|json',
-            'instagram' => 'nullable|string|max:255|min:3',
-            // 'localisation_actuelle' => 'nullable|string|max:255',
-            'localisation_actuelle' => 'nullable|exists:salons,id', // Valide comme clé 
-            'disponibilites' => 'nullable|json',
-            // 'updated_at' => 'nullable|string|max:255',
-        ]);
-
-        
-        $tatoueur->load(['user', 'salons', 'flashs', 'portfolios', 'contractedSalons']);
-
-        $tatoueur->update($validated);
-        return redirect()->back();
-        // ->with([
-        //     'success' => 'Tatoueur updated successfully!',
-        //     'tatoueur' => $tatoueur->refresh(), // Pass any other data as needed
-        // ]);
-
-        // return redirect()->route('tatoueurs.show', $tatoueur)->with('success', 'tatoueur mis à jour avec succès.');
-        
-        // return $tatoueur;
-        // return Inertia::render('Tatoueurs/Index', [
-        //     'tatoueur' => $tatoueur->only(
-        //       'id',
-        //       'bio',
-        //       'style',
-        //       'instagram',
-        //       'disponibilites'
-        //     ),
-        //     // 'tatoueur' => $tatoueur->fresh(), // Assurez-vous de rafraîchir les données si nécessaire
-        //     // 'success'  => 'Tatoueur mis à jour avec succès.',
-        //     // 'disponibilites' => $tatoueur ? $tatoueur->disponibilites : null // Cela envoie les données JSON directement
-
-        // ]);
-        // return response()->json(['tatoueur' => $tatoueur->fresh()], 200);
-
-    }
-
-    // Suppression d'un tatoueur
-    public function destroy(Tatoueur $tatoueur)
-    {
-        $tatoueur->delete();
-        // return response(null, 204);
-        return to_route('tatoueurs.index')->with('success', 'tatoueur supprimé avec succès.');
-
-    }
-
-    // Méthodes supplémentaires si besoin
-    public function getFlashs(Tatoueur $tatoueur)
-    {
-        return $tatoueur->flashs;
-    }
-
-        /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-              // $user = auth()->user();
-        $user = auth()->user(); // Récupère l'utilisateur connecté
-        // dd(Gate::allows('create-salon', $user));
-        // dd(Gate::allows('create-salon'));
-        if (!Gate::allows('create-tatoueur')) {
-            // dd(auth()->user()->role); // Vérifie ce que retourne le rôle ici
-            abort(403, 'Vous n\'avez pas l\'autorisation de créer un profile tatoueur.');
-        }
-        // $salons = Salon::all();
-        
-        return Inertia::render('tatoueur/Create', [
-            'salons' => fn () => Salon::all(), // Liste des salons
-            'csrf_token' => csrf_token(), // Injecte le token CSRF
-            'tatoueur' => [
-                'bio' => '',
-                'style' => [],
-                'localisation_actuelle' => null, // UUID du salon (ou null si vide)
-                'disponibilites' => [], // Tableau vide pour les disponibilités
-                'instagram' => '',
-            ],
-        ]);
-        
-
-        // return Inertia::render('tatoueur/index', [
-        //     'tatoueur' => $tatoueur ?? null ,
-        //     'disponibilites' => $tatoueur ? $tatoueur->disponibilites : null // Cela envoie les données JSON directement
-        //     // 'salons' => [$salon]
-        // ]);
+        // Redirection vers la page précédente (index) avec un message de succès
+        return redirect()->back()->with('success', 'Profil tatoueur créé avec succès.');
     }
 
 
     /**
-     * Show the form for editing the specified resource.
+     * Met à jour le profil tatoueur existant de l'utilisateur connecté.
+     * Appelée par le formulaire modal en mode édition.
      */
-    public function edit(Tatoueur $tatoueur)
+    public function update(Request $request, Tatoueur $tatoueur)
     {
-        //
+        // Vérifier que l'utilisateur modifie bien son propre profil
+        $user = auth()->user();
+        if ($tatoueur->user_id !== $user->id) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        // Vérifier la permission (si une policy existe)
+        // Gate::authorize('update', $tatoueur);
+
+        $validated = $request->validate([
+            'bio' => 'nullable|string|max:2000',
+            'style' => 'nullable|json',
+            'localisation_actuelle' => [
+                'nullable',
+                Rule::exists('salons', 'id') // Doit être un ID de salon valide ou null
+            ],
+            'disponibilites' => 'nullable|json',
+            'instagram' => ['nullable', 'string', 'max:255', 'url:http,https'],
+        ]);
+
+        // Gérer les champs JSON si $casts n'est pas utilisé (voir commentaire dans store())
+        // $validated['style'] = isset($validated['style']) ? json_encode($validated['style']) : null;
+        // $validated['disponibilites'] = isset($validated['disponibilites']) ? json_encode($validated['disponibilites']) : null;
+
+        $tatoueur->update($validated);
+
+        // Redirection vers la page précédente (index) avec un message de succès
+        // Inertia rechargera les données automatiquement avec le profil mis à jour
+        return redirect()->back()->with('success', 'Profil tatoueur mis à jour avec succès.');
     }
+
+    /**
+     * Supprime le profil tatoueur de l'utilisateur connecté.
+     * Appelée depuis la page index.
+     */
+    public function destroy(Tatoueur $tatoueur)
+    {
+        // Vérifier que l'utilisateur supprime bien son propre profil
+        $user = auth()->user();
+        if ($tatoueur->user_id !== $user->id) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        // Vérifier la permission (si une policy existe)
+        // Gate::authorize('delete', $tatoueur);
+
+        $tatoueur->delete(); // Utilise SoftDelete si le modèle l'a activé, sinon suppression permanente
+
+        // Redirection vers la même page. Le profil aura disparu.
+        // On pourrait aussi rediriger vers le dashboard : return redirect()->route('dashboard')->with(...)
+        return redirect()->back()->with('success', 'Profil tatoueur supprimé avec succès.');
+    }
+
+    // --- Méthodes potentiellement non nécessaires si tout est géré via le modal sur Index ---
+    // public function show(Tatoueur $tatoueur) -> Probablement pas utile si Index affiche déjà les détails
+    // public function create() -> Remplacé par le modal sur Index
+    // public function edit(Tatoueur $tatoueur) -> Remplacé par le modal sur Index
 }

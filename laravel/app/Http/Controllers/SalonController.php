@@ -27,7 +27,7 @@ class SalonController extends Controller
         // dd($lastSalon); 
         // dd($salons->id); 
         // Retourner une vue avec les salons
-        return inertia('Salons/Index2', [
+        return inertia('Salons/Index3', [
             'salons' => $salons,
             'last' => $lastSalon,
             'csrf_token' => csrf_token(), // Injecte le token CSRF dans la réponse
