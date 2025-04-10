@@ -1,69 +1,69 @@
 <?php
 
-// app/Models/Tatoueur.php
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids; // <-- AJOUTER
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Tatoueur extends Model
 {
     use HasFactory;
+    use HasUuids; // <-- AJOUTER (Gère automatiquement la clé primaire UUID)
 
-    protected $keyType = 'string';
-    public $incrementing = false;
+    // Plus besoin de ça si on utilise HasUuids :
+    // protected $keyType = 'string';
+    // public $incrementing = false;
 
     protected $table = 'tatoueurs';
+
+    // Assure-toi que 'user_id' est bien fillable si tu le définis manuellement
     protected $fillable = [
         'bio',
         'style',
         'localisation_actuelle',
         'disponibilites',
         'instagram',
-        'user_id'
+        'user_id' // Nécessaire pour la création
     ];
 
-    // protected $casts = [
-    //     'disponibilites' => 'array', // Laravel va convertir automatiquement JSON en tableau PHP
-    // ];
+    // !! ACTIVER LES CASTS !!
+    protected $casts = [
+        'style' => 'array',         // Convertit jsonb <-> array PHP
+        'disponibilites' => 'array', // Convertit jsonb <-> array PHP
+        // Si tu préfères des objets stdClass au lieu d'array associatifs pour disponibilités:
+        // 'disponibilites' => 'object',
+    ];
 
     public function user()
     {
-        // return $this->belongsTo(User::class);
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    // !! AJOUTER LA RELATION MANQUANTE !!
+    public function salonActuel()
+    {
+        // Relation vers le salon défini dans localisation_actuelle
+        return $this->belongsTo(Salon::class, 'localisation_actuelle');
+    }
+
+
     public function contractedSalons()
     {
-        // return $this->belongsToMany(Salon::class, 'tatoueurs_salons', 'tatoueur_id', 'salon_id');
         return $this->belongsToMany(Salon::class, 'tatoueurs_salons', 'tatoueur_id', 'salon_id')
         ->withPivot(['date_debut', 'date_fin'])
         ->withTimestamps();
     }
-    
-    // public function salons()
-    // {
-    //     // return $this->belongsTo(Salon::class, 'localisation_actuelle', 'id');
-    //     return $this->hasMany(Salon::class, 'id', 'localisation_actuelle');
-    // }
 
-    // public function salonsDuTatoueur()
-    // {
-    // // On part du principe que le tatoueur est lié à un user via user_id
-    // // Et que dans Salon, la colonne gestionnaire_id correspond à l'id du user
-    // return Salon::where('gestionnaire_id', $this->user_id);
-    // }
-
-    public function salons()
+    public function salons() // Relation complexe via User - Ok si c'est bien ce que tu veux
     {
         return $this->hasManyThrough(
-            Salon::class,      // Modèle final : Salon
-            User::class,       // Modèle intermédiaire : User
-            'id',              // Clé locale sur le modèle User, ici "id"
-            'gestionnaire_id', // Clé étrangère dans Salon qui réfère à User.id
-            'user_id',         // Clé étrangère dans Tatoueur qui réfère à User (ici user_id)
-            'id'               // Clé locale sur le modèle User (généralement "id")
+            Salon::class,
+            User::class,
+            'id',
+            'gestionnaire_id',
+            'user_id',
+            'id'
         );
     }
 
@@ -81,4 +81,13 @@ class Tatoueur extends Model
     {
         return $this->hasMany(Portfolio::class);
     }
+
+     /**
+      * Override: Colonnes qui doivent recevoir un UUID automatiquement.
+      * Optionnel si seule 'id' est concernée (comportement par défaut de HasUuids).
+      */
+    // public function uniqueIds(): array
+    // {
+    //     return ['id'];
+    // }
 }

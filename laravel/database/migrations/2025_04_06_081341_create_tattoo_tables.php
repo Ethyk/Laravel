@@ -58,9 +58,9 @@ return new class extends Migration
         Schema::create('tatoueurs_salons', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(\Illuminate\Support\Facades\DB::raw('gen_random_uuid()'));
             // $table->uuid('tatoueur_id')->references('id')->on('tatoueurs')->onDelete('cascade');
-            $table->uuid('tatoueur_id')->nullable();
+            $table->uuid('tatoueur_id')->nullable(false);
             $table->foreign('tatoueur_id')->references('id')->on('tatoueurs')->onDelete('cascade');
-            $table->uuid('salon_id')->nullable();
+            $table->uuid('salon_id')->nullable(false);
             $table->foreign('salon_id')->references('id')->on('salons')->onDelete('cascade');
             $table->date('date_debut')->nullable(false);
             $table->date('date_fin')->nullable();

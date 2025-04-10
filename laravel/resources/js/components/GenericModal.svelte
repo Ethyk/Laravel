@@ -60,7 +60,7 @@
                 {@render children()}
             </div>
 
-            <Dialog.Footer >
+            <Dialog.Footer>
                 <Button type="button" variant="outline" onclick={handleCancel}>
                     {cancelLabel}
                 </Button>

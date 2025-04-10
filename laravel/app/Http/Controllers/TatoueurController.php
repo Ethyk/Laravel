@@ -24,7 +24,8 @@ class TatoueurController extends Controller
             ->with([
                 'user:id,name,email', // Charger l'utilisateur associé (champs spécifiques)
                 'salonActuel:id,name,ville', // Charger le salon actuel (si défini et relation existe)
-                'salons:id,name,ville', // Charger les salons auxquels il est lié (si relation many-to-many existe)
+                // 'salons:id,name,ville', // Charger les salons auxquels il est lié (si relation many-to-many existe)
+                'salons:salons.id,salons.name,salons.ville',
                 'flashs', // Charger les flashs
                 'portfolios', // Charger les portfolios
                 'contractedSalons' // Charger les salons sous contrat
@@ -80,7 +81,7 @@ class TatoueurController extends Controller
         // Si $casts n'est pas utilisé, il faudrait peut-être encoder ici:
         // $validated['style'] = isset($validated['style']) ? json_encode($validated['style']) : null;
         // $validated['disponibilites'] = isset($validated['disponibilites']) ? json_encode($validated['disponibilites']) : null;
-
+        // dd($validated);
         $tatoueur = Tatoueur::create($validated);
 
         // Redirection vers la page précédente (index) avec un message de succès
